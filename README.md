@@ -2,7 +2,9 @@
 
 Converts a [Logseq](https://logseq.com/) knowledge base into a static website (HTML + CSS + vanilla JS).
 
-> 🤖 **Vibecoded** — ce projet a été entièrement généré par vibe coding avec Claude. Le code source est lisible et modifiable, mais l'architecture et les choix d'implémentation ont émergé de la collaboration humain-IA plutôt que d'une conception traditionnelle.
+> 🤖 **Vibecoded** — This project was entirely generated through vibe coding with Claude. The source code is readable and modifiable, but the architecture and implementation choices emerged from human-AI collaboration rather than traditional design.
+>
+> ⚠️ **This project is still in early beta.** Expect rough edges and breaking changes.
 
 ## ⚙️ How it works
 
