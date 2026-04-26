@@ -1,0 +1,28 @@
+<nav class="site-nav" id="site-nav" aria-label="Navigation principale">
+  <ul class="site-nav__list">
+    <li class="site-nav__item">
+      <a class="site-nav__link site-nav__link--home" href="index.html">
+        <svg class="site-nav__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Accueil
+      </a>
+    </li>
+  </ul>
+
+  {% if config.social_links %}
+  <div class="site-nav__socials">
+    <span class="site-nav__section-label">Réseaux</span>
+    <ul class="site-nav__list">
+      {% for name, url in config.social_links.items() %}
+      <li class="site-nav__item">
+        <a class="site-nav__link site-nav__link--social" href="{{ url }}" target="_blank" rel="noopener noreferrer">
+          {{ name }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</nav>
