@@ -1,0 +1,80 @@
+# logseq-site-builder.toml
+# Place this file (without the .example suffix) at the root of your Logseq project.
+# All keys are optional.
+# Priority: CLI options > this file > logseq/config.edn (auto-read).
+
+[site]
+title       = "My Logseq Site"
+author      = "First Last"
+description = "My personal knowledge base, generated from Logseq."
+base_url    = "https://example.com"
+
+# Home page slug. Auto-read from config.edn :default-home if absent.
+home_page = "home"
+
+# Publish all pages without requiring #+PUBLIC: true.
+# Auto-read from config.edn :publishing/all-pages-public? if absent.
+all_public = false
+
+# Org headings at level >= N are turned into plain paragraphs (<h3>… → <p>).
+# Remove or comment out to disable.
+flatten_headings_from = 3
+
+# Pages and journals directories (auto-read from config.edn if absent).
+pages_directory    = "pages"
+journals_directory = "journals"
+
+# Paths to exclude from the build (relative to the Logseq project root).
+# Auto-read from config.edn :hidden if absent.
+# hidden = ["/private", "/drafts/secret.org"]
+
+# ── Blog (Logseq journals) ────────────────────────────────────────────────────
+
+# Enable the blog section built from files in the journals/ directory.
+# Auto-read from config.edn :feature/enable-journals? if absent.
+enable_journals = false
+
+# Title shown on the blog index page and in the nav menu.
+blog_title = "Blog"
+
+# Slug of the blog index page (→ blog.html).
+blog_slug = "blog"
+
+# Date display format for post titles (Java/Logseq notation).
+# Auto-read from config.edn :journal/page-title-format if absent.
+# Examples: "dd-MM-yyyy", "MMM do, yyyy", "EEE dd MMMM yyyy"
+journal_page_title_format = "dd-MM-yyyy"
+
+# Date format used in journal filenames (Java/Logseq notation).
+# Auto-read from config.edn :journal/file-name-format if absent.
+journal_file_name_format = "yyyy_MM_dd"
+
+# Generate a feed.xml RSS 2.0 file. Requires enable_journals = true.
+# A <link rel="alternate"> tag is added to every page <head>.
+# Set base_url above for absolute URLs in the feed.
+rss = false
+
+# ── Navigation menu ───────────────────────────────────────────────────────────
+# Ordered list of nav links. Each entry needs a label (display text) and a
+# slug (filename without .html).
+# When enable_journals = true, a blog entry is added automatically if the
+# blog_slug is not already present here.
+
+[[menu]]
+label = "Home"
+slug  = "home"
+
+[[menu]]
+label = "Projects"
+slug  = "projects"
+
+[[menu]]
+label = "About"
+slug  = "about"
+
+# ── Social links ─────────────────────────────────────────────────────────────
+# Displayed in the navigation sidebar.
+
+[social_networks]
+GitHub   = "https://github.com/your-username"
+Mastodon = "https://mastodon.social/@your-handle"

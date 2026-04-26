@@ -10,6 +10,9 @@ class PageRepository(ABC):
     def find_all(self) -> Iterator[Page]:
         ...
 
+    def find_journals(self) -> Iterator[Page]:
+        return iter([])
+
 
 class ContentConverter(ABC):
     @abstractmethod
@@ -28,4 +31,12 @@ class SiteWriter(ABC):
 
     @abstractmethod
     def write_static_files(self) -> None:
+        ...
+
+    @abstractmethod
+    def write_blog_index(self, journal_pages: list[Page], config: SiteConfig) -> None:
+        ...
+
+    @abstractmethod
+    def write_rss(self, journal_pages: list[Page], config: SiteConfig) -> None:
         ...

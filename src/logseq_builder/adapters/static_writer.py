@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from ..domain.page import Page, SiteConfig
 from ..ports.interfaces import SiteWriter
@@ -15,7 +15,8 @@ class StaticWriter(SiteWriter):
         self._output_dir = output_dir
         self._env = Environment(
             loader=FileSystemLoader(str(_TEMPLATES_DIR)),
-            autoescape=True,
+            # Autoescape HTML only; RSS/XML templates handle escaping themselves
+            autoescape=select_autoescape(["html", "htm"]),
         )
 
     def write_page(self, page: Page, config: SiteConfig, is_home: bool = False) -> None:
@@ -24,6 +25,18 @@ class StaticWriter(SiteWriter):
         html = template.render(page=page, config=config)
         filename = "index.html" if is_home else page.output_filename
         (self._output_dir / filename).write_text(html, encoding="utf-8")
+
+    def write_blog_index(self, journal_pages: list[Page], config: SiteConfig) -> None:
+        self._output_dir.mkdir(parents=True, exist_ok=True)
+        template = self._env.get_template("blog.html")
+        html = template.render(journal_pages=journal_pages, config=config)
+        (self._output_dir / f"{config.blog_slug}.html").write_text(html, encoding="utf-8")
+
+    def write_rss(self, journal_pages: list[Page], config: SiteConfig) -> None:
+        self._output_dir.mkdir(parents=True, exist_ok=True)
+        template = self._env.get_template("rss.xml")
+        xml = template.render(journal_pages=journal_pages, config=config)
+        (self._output_dir / "feed.xml").write_text(xml, encoding="utf-8")
 
     def copy_assets(self, asset_filenames: list[str], logseq_assets_dir: Path) -> None:
         if not asset_filenames:

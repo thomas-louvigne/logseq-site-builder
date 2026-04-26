@@ -48,9 +48,11 @@ pip install -e .
 
 ## 🔧 Configuration
 
-Drop a `logseq-site-builder.toml` file at the root of your Logseq project. All keys are optional.
+On the **first run**, the builder automatically generates a `logseq-site-builder.toml` file at the root of your Logseq project, pre-filled with values read from `logseq/config.edn`. You can then edit it freely to customise your site.
 
-> 📋 A fully documented example is available in [`logseq-site-builder.example.toml`](logseq-site-builder.example.toml) — copy it to your Logseq project root and uncomment what you need.
+To skip this behaviour, pass `--no-init-toml`.
+
+> 📋 A fully documented reference is available in [`logseq-site-builder.example.toml`](logseq-site-builder.example.toml) — it lists every available key with descriptions and defaults.
 
 ### Priority order
 
@@ -213,6 +215,7 @@ logseq-builder <logseq_dir> <output_dir> [OPTIONS]
 | `--home-page SLUG` | Page to use as `index.html` (default: read from `config.edn`) |
 | `--all-public` | Publish all pages, ignore `#+PUBLIC: true` |
 | `--social NAME:URL` | Social link in the nav menu (repeatable) |
+| `--no-init-toml` | Do not generate `logseq-site-builder.toml` on first run |
 
 ### Examples
 
