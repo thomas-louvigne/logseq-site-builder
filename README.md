@@ -54,7 +54,73 @@ On the **first run**, the builder automatically generates a `logseq-site-builder
 
 To skip this behaviour, pass `--no-init-toml`.
 
-> 📋 A fully documented reference is available in [`logseq-site-builder.example.toml`](logseq-site-builder.example.toml) — it lists every available key with descriptions and defaults.
+### `logseq-site-builder.toml` reference
+
+```toml
+# Place this file at the root of your Logseq project.
+# All keys are optional.
+# Priority: CLI options > this file > logseq/config.edn (auto-read).
+
+[site]
+title       = "My Logseq Site"
+author      = "First Last"
+description = "My personal knowledge base, generated from Logseq."
+base_url    = "https://example.com"
+
+# Home page slug. Auto-read from config.edn :default-home if absent.
+home_page = "home"
+
+# Publish all pages without requiring #+PUBLIC: true.
+# Auto-read from config.edn :publishing/all-pages-public? if absent.
+all_public = false
+
+# Org headings at level >= N are turned into plain paragraphs (<h3>… → <p>).
+# Remove or comment out to disable.
+flatten_headings_from = 3
+
+# Theme: "default", "dark", or a path to a custom CSS file.
+# theme = "dark"
+
+# Pages and journals directories (auto-read from config.edn if absent).
+pages_directory    = "pages"
+journals_directory = "journals"
+
+# Paths to exclude from the build (relative to the Logseq project root).
+# hidden = ["/private", "/drafts/secret.org"]
+
+# ── Blog (Logseq journals) ────────────────────────────────────────────────────
+
+# Enable the blog section built from files in the journals/ directory.
+enable_journals = false
+
+blog_title = "Blog"
+blog_slug  = "blog"
+
+# Date display format for post titles (Java/Logseq notation).
+journal_page_title_format = "dd-MM-yyyy"
+
+# Date format used in journal filenames (Java/Logseq notation).
+journal_file_name_format = "yyyy_MM_dd"
+
+# Generate a feed.xml RSS 2.0 file. Requires enable_journals = true.
+rss = false
+
+# ── Navigation menu ───────────────────────────────────────────────────────────
+
+[[menu]]
+label = "Home"
+slug  = "home"
+
+[[menu]]
+label = "About"
+slug  = "about"
+
+# ── Social links ─────────────────────────────────────────────────────────────
+
+[social_networks]
+GitHub   = "https://github.com/your-username"
+Mastodon = "https://mastodon.social/@your-handle"
+```
 
 ### Priority order
 
