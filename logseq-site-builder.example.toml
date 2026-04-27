@@ -20,6 +20,12 @@ all_public = false
 # Remove or comment out to disable.
 flatten_headings_from = 3
 
+# Theme to apply to the generated site.
+# - Built-in themes: "default", "dark"  (ship with logseq-site-builder)
+# - Custom CSS file: path relative to this Logseq project directory, e.g. "themes/my-theme.css"
+# Omit or leave commented out to use the built-in default theme.
+# theme = "dark"
+
 # Pages and journals directories (auto-read from config.edn if absent).
 pages_directory    = "pages"
 journals_directory = "journals"

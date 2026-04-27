@@ -6,13 +6,40 @@ import click
 from .adapters.edn_config_loader import generate_toml
 from .adapters.logseq_reader import LogseqReader
 from .adapters.pandoc_converter import PandocConverter
-from .adapters.static_writer import StaticWriter
+from .adapters.static_writer import THEMES_DIR, StaticWriter
 from .adapters.toml_config_loader import load_toml_config
 from .domain.page import SiteConfig
 from .services.link_resolver import slugify
 from .services.site_builder import SiteBuilder
 
 _TOML_FILENAME = "logseq-site-builder.toml"
+
+
+def _resolve_theme_css(theme: str, logseq_dir: Path) -> Path | None:
+    """Resolve a theme name or path to an absolute CSS file path.
+
+    Resolution order:
+    1. Built-in theme name (e.g. "dark" → themes/dark.css)
+    2. Path relative to the Logseq project directory
+    3. Absolute path
+    """
+    # Built-in theme by name (no extension, no path separators)
+    if not theme.endswith(".css") and "/" not in theme and "\\" not in theme:
+        candidate = THEMES_DIR / f"{theme}.css"
+        if candidate.exists():
+            return candidate
+
+    # Relative path from logseq dir
+    candidate = logseq_dir / theme
+    if candidate.exists():
+        return candidate
+
+    # Absolute path
+    absolute = Path(theme)
+    if absolute.is_absolute() and absolute.exists():
+        return absolute
+
+    return None
 
 
 @click.command()
@@ -34,6 +61,11 @@ _TOML_FILENAME = "logseq-site-builder.toml"
     default=False,
     help=f"Do not generate {_TOML_FILENAME} when it does not exist.",
 )
+@click.option(
+    "--theme",
+    default=None,
+    help='Theme name (e.g. "dark") or path to a CSS file (relative to the Logseq dir).',
+)
 def main(
     input_dir: Path,
     output_dir: Path,
@@ -42,6 +74,7 @@ def main(
     all_public: bool,
     social_links: tuple[str, ...],
     no_init_toml: bool,
+    theme: str | None,
 ) -> None:
     """Build a static website from a Logseq knowledge base."""
     toml_path = input_dir / _TOML_FILENAME
@@ -143,10 +176,25 @@ def main(
 
     logseq_assets_dir = input_dir / "assets"
 
+    theme_str = theme or site_section.get("theme")
+    theme_css: Path | None = None
+    if theme_str:
+        theme_css = _resolve_theme_css(theme_str, input_dir)
+        if theme_css is None:
+            built_in_names = [p.stem for p in THEMES_DIR.glob("*.css")]
+            click.echo(
+                f"Warning: theme '{theme_str}' not found. "
+                f"Built-in themes: {built_in_names}. "
+                f"Falling back to default.",
+                err=True,
+            )
+        else:
+            click.echo(f"  Theme: {theme_css.name}")
+
     builder = SiteBuilder(
         reader=reader,
         converter=PandocConverter(),
-        writer=StaticWriter(output_dir),
+        writer=StaticWriter(output_dir, theme_css=theme_css),
     )
 
     click.echo(f"Building site from {input_dir} → {output_dir}")

@@ -43,6 +43,7 @@ class SiteBuilder:
         home = self._find_home(pages, config.home_slug)
 
         self._writer.write_static_files()
+        self._writer.write_404(config)
 
         for page in pages:
             self._writer.write_page(page, config, is_home=(page is home))

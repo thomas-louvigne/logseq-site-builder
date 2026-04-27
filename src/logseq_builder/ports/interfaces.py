@@ -37,6 +37,9 @@ class SiteWriter(ABC):
     def write_blog_index(self, journal_pages: list[Page], config: SiteConfig) -> None:
         ...
 
+    def write_404(self, config: SiteConfig) -> None:
+        ...
+
     @abstractmethod
     def write_rss(self, journal_pages: list[Page], config: SiteConfig) -> None:
         ...

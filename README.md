@@ -79,6 +79,41 @@ This means you rarely need to duplicate values already present in `config.edn`.
 | `:journal/page-title-format` | `[site] journal_page_title_format` | Date display format |
 | `:journal/file-name-format` | `[site] journal_file_name_format` | Journal filename date format |
 
+## 🎨 Themes
+
+The builder ships with two built-in themes and supports custom CSS files.
+
+### Built-in themes
+
+| Name | Description |
+|---|---|
+| `default` | Light background, dark sidebar (default when no theme is set) |
+| `dark` | Fully dark interface — dark content area, dark sidebar |
+
+Set a theme in your TOML:
+
+```toml
+[site]
+theme = "dark"
+```
+
+Or via CLI:
+
+```bash
+logseq-builder ~/my-logseq ~/Sites/my-site --theme dark
+```
+
+### Custom theme
+
+Place any `.css` file in your Logseq project directory (e.g. `themes/my-theme.css`) and reference it:
+
+```toml
+[site]
+theme = "themes/my-theme.css"
+```
+
+The file replaces `style.css` in the generated site. Use the built-in themes in `src/logseq_builder/themes/` as a starting point — they expose all colours as CSS custom properties at the top, so you only need to override the variables you want to change.
+
 ## 📄 Published pages
 
 By default, only pages marked `#+PUBLIC: true` are included:
@@ -217,6 +252,7 @@ logseq-builder <logseq_dir> <output_dir> [OPTIONS]
 | `--home-page SLUG` | Page to use as `index.html` (default: read from `config.edn`) |
 | `--all-public` | Publish all pages, ignore `#+PUBLIC: true` |
 | `--social NAME:URL` | Social link in the nav menu (repeatable) |
+| `--theme NAME_OR_PATH` | Theme name (`default`, `dark`) or path to a CSS file |
 | `--no-init-toml` | Do not generate `logseq-site-builder.toml` on first run |
 
 ### Examples

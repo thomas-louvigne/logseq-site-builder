@@ -8,11 +8,13 @@ from ..ports.interfaces import SiteWriter
 
 _TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 _STATIC_DIR = Path(__file__).parent.parent / "static"
+THEMES_DIR = Path(__file__).parent.parent / "themes"
 
 
 class StaticWriter(SiteWriter):
-    def __init__(self, output_dir: Path) -> None:
+    def __init__(self, output_dir: Path, theme_css: Path | None = None) -> None:
         self._output_dir = output_dir
+        self._theme_css = theme_css
         self._env = Environment(
             loader=FileSystemLoader(str(_TEMPLATES_DIR)),
             # Autoescape HTML only; RSS/XML templates handle escaping themselves
@@ -48,12 +50,18 @@ class StaticWriter(SiteWriter):
             if src.exists():
                 shutil.copy2(src, assets_out / filename)
 
+    def write_404(self, config: SiteConfig) -> None:
+        self._output_dir.mkdir(parents=True, exist_ok=True)
+        template = self._env.get_template("404.html")
+        html = template.render(config=config)
+        (self._output_dir / "404.html").write_text(html, encoding="utf-8")
+
     def write_static_files(self) -> None:
         self._output_dir.mkdir(parents=True, exist_ok=True)
         js_out = self._output_dir / "js"
         js_out.mkdir(parents=True, exist_ok=True)
 
-        css_src = _STATIC_DIR / "style.css"
+        css_src = self._theme_css if self._theme_css is not None else _STATIC_DIR / "style.css"
         if css_src.exists():
             shutil.copy2(css_src, self._output_dir / "style.css")
 

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}404 — {{ config.title }}{% endblock %}
+
+{% block content %}
+<style>
+  .not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: calc(100vh - var(--header-height) - 4rem);
+    padding: 2rem;
+    gap: 0;
+  }
+  .not-found__code {
+    font-size: clamp(5rem, 18vw, 10rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--color-accent);
+    opacity: 0.18;
+    user-select: none;
+    margin-bottom: -0.15em;
+  }
+  .not-found__title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+  .not-found__desc {
+    color: var(--color-text-muted);
+    font-size: 0.9375rem;
+    max-width: 34ch;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+  }
+  .not-found__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.25rem;
+    background: var(--color-accent);
+    color: #fff;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity .15s;
+  }
+  .not-found__link:hover { opacity: 0.85; color: #fff; text-decoration: none; }
+</style>
+
+<div class="not-found">
+  <span class="not-found__code" aria-hidden="true">404</span>
+  <h1 class="not-found__title">Page introuvable</h1>
+  <p class="not-found__desc">
+    Cette page n'existe pas ou a été déplacée.
+  </p>
+  <a class="not-found__link" href="index.html">
+    ← Retour à l'accueil
+  </a>
+</div>
+{% endblock %}
