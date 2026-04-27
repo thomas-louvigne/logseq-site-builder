@@ -6,6 +6,21 @@ Converts a [Logseq](https://logseq.com/) knowledge base into a static website (H
 >
 > ⚠️ **This project is still in early beta.** Expect rough edges and breaking changes.
 
+## ✨ Features
+
+- **Org & Markdown** — supports both Logseq file formats via Pandoc
+- **Selective publishing** — per-page `#+PUBLIC: true` flag or global all-public mode
+- **Wiki links** — `[[Page name]]` converted to valid HTML links
+- **Asset handling** — images embedded, other files (PDF, ZIP…) linked with `download`
+- **Themes** — built-in `default` and `dark` themes, or bring your own CSS file
+- **Blog / journals** — generates a blog index + individual pages from Logseq journals
+- **RSS feed** — RSS 2.0 `feed.xml` generated from journal entries
+- **Navigation menu** — configurable nav links via TOML
+- **Social links** — social network icons in the sidebar
+- **Hidden pages** — exclude files or directories from the build
+- **TOML config** — auto-generated on first run, with values pre-filled from `config.edn`
+- **Zero JS framework** — output is plain HTML + CSS + vanilla JS
+
 ## ⚙️ How it works
 
 ```
