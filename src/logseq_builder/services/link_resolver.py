@@ -40,6 +40,7 @@ _HASHTAG_SIMPLE = re.compile(r"(?<![a-zA-Z0-9_\[])#([A-Za-z][A-Za-z0-9_-]*)")
 _PROPERTIES_BLOCK = re.compile(r":PROPERTIES:.*?:END:", re.DOTALL)
 _LOGBOOK_BLOCK = re.compile(r":LOGBOOK:.*?:END:", re.DOTALL)
 _PUBLIC_DIRECTIVE = re.compile(r"#\+PUBLIC:[^\n]*\n?", re.IGNORECASE)
+_EMPTY_HEADING = re.compile(r"^\*+\s*$", re.MULTILINE)
 
 
 class LinkResolver:
@@ -73,6 +74,7 @@ class LinkResolver:
         content = _PUBLIC_DIRECTIVE.sub("", content)
         content = _PROPERTIES_BLOCK.sub("", content)
         content = _LOGBOOK_BLOCK.sub("", content)
+        content = _EMPTY_HEADING.sub("", content)
 
         def replace_asset(m: re.Match) -> str:
             filename, label = m.group(1), m.group(2)
