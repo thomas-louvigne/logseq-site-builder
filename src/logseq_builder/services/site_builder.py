@@ -1,4 +1,5 @@
 import re
+from collections.abc import Callable
 from pathlib import Path
 
 from ..domain.page import Page, SiteConfig
@@ -17,7 +18,12 @@ class SiteBuilder:
         self._converter = converter
         self._writer = writer
 
-    def build(self, config: SiteConfig, logseq_assets_dir: Path) -> None:
+    def build(
+        self,
+        config: SiteConfig,
+        logseq_assets_dir: Path,
+        on_progress: Callable[[str], None] | None = None,
+    ) -> None:
         pages = [p for p in self._reader.find_all() if p.is_public]
 
         if not pages:
@@ -29,6 +35,8 @@ class SiteBuilder:
         for page in pages:
             page.html_content = self._process_page(page, resolver, config)
             all_asset_filenames.extend(page.asset_filenames)
+            if on_progress:
+                on_progress(page.title)
 
         # Process journal pages (blog)
         journal_pages: list[Page] = []
@@ -39,6 +47,8 @@ class SiteBuilder:
                 for page in journal_pages:
                     page.html_content = self._process_page(page, journal_resolver, config)
                     all_asset_filenames.extend(page.asset_filenames)
+                    if on_progress:
+                        on_progress(page.title)
 
         home = self._find_home(pages, config.home_slug)
 

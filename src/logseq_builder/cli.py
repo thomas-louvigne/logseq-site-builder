@@ -1,3 +1,5 @@
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -199,14 +201,19 @@ def main(
 
     click.echo(f"Building site from {input_dir} → {output_dir}")
     click.echo(f"  {len(public_pages)} public page(s) found")
+    journal_count = 0
     if enable_journals:
         journal_count = sum(1 for _ in reader.find_journals())
         click.echo(f"  {journal_count} journal entry(ies) found")
     if hidden:
         click.echo(f"  {len(hidden)} hidden path(s): {hidden}")
 
+    total_pages = len(public_pages) + journal_count
     try:
-        builder.build(config, logseq_assets_dir)
+        with click.progressbar(length=total_pages, label="Building", width=50) as bar:
+            def on_progress(title: str) -> None:
+                bar.update(1)
+            builder.build(config, logseq_assets_dir, on_progress=on_progress)
     except Exception as exc:
         click.echo(f"Error: {exc}", err=True)
         sys.exit(1)
@@ -214,6 +221,13 @@ def main(
     click.echo(f"Done. Site written to {output_dir}")
     if enable_journals and rss:
         click.echo(f"  RSS feed: {output_dir / 'feed.xml'}")
+
+    if shutil.which("notify-send"):
+        subprocess.run(
+            ["notify-send", "--icon=dialog-information", "logseq-builder",
+             f"Build complete — {total_pages} page(s) → {output_dir}"],
+            check=False,
+        )
 
 
 def _auto_detect_home(pages) -> str:  # type: ignore[type-arg]

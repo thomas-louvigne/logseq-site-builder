@@ -281,6 +281,11 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   margin: 1.5em 0;
 }
 
+/* ── Heading indentation (Pandoc --section-divs) ─────────── */
+.page-body section.level2 { padding-left: 1rem; }
+.page-body section.level3 { padding-left: 1rem; }
+.page-body section.level4 { padding-left: 1rem; }
+
 /* ── Footer ──────────────────────────────────────────────── */
 .site-footer {
   background: var(--color-nav-bg);

@@ -60,8 +60,18 @@ brew install pandoc
 ```bash
 git clone https://github.com/thomas-louvigne/logseq-site-builder.git
 cd logseq-site-builder
+```
+
+Create and activate a virtual environment, then install:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate   # Linux/macOS
+# .venv\Scripts\activate    # Windows
 pip install -e .
 ```
+
+> **Note:** You need to activate the virtual environment (`source .venv/bin/activate`) each time you open a new terminal before using `logseq-builder`.
 
 ## 🔧 Configuration
 
