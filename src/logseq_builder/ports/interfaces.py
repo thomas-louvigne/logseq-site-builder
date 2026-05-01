@@ -40,6 +40,9 @@ class SiteWriter(ABC):
     def write_404(self, config: SiteConfig) -> None:
         ...
 
+    def copy_pages_subdirs(self, pages_dir: Path) -> None:
+        ...
+
     @abstractmethod
     def write_rss(self, journal_pages: list[Page], config: SiteConfig) -> None:
         ...

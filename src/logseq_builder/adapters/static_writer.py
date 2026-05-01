@@ -56,6 +56,23 @@ class StaticWriter(SiteWriter):
         html = template.render(config=config)
         (self._output_dir / "404.html").write_text(html, encoding="utf-8")
 
+    def copy_pages_subdirs(self, pages_dir: Path) -> None:
+        if not pages_dir.is_dir():
+            return
+        for subdir in pages_dir.iterdir():
+            if not subdir.is_dir():
+                continue
+            has_web_files = any(
+                f.suffix in {".html", ".css"}
+                for f in subdir.rglob("*")
+                if f.is_file()
+            )
+            if has_web_files:
+                dest = self._output_dir / subdir.name
+                if dest.exists():
+                    shutil.rmtree(dest)
+                shutil.copytree(subdir, dest)
+
     def write_static_files(self) -> None:
         self._output_dir.mkdir(parents=True, exist_ok=True)
         js_out = self._output_dir / "js"

@@ -17,6 +17,7 @@ Converts a [Logseq](https://logseq.com/) knowledge base into a static website (H
 - **RSS feed** — RSS 2.0 `feed.xml` generated from journal entries
 - **Navigation menu** — configurable nav links via TOML
 - **Social links** — social network icons in the sidebar
+- **Custom HTML pages** — subdirectories of `pages/` containing `.html`/`.css` files are copied as-is into the output
 - **Hidden pages** — exclude files or directories from the build
 - **TOML config** — auto-generated on first run, with values pre-filled from `config.edn`
 - **Zero JS framework** — output is plain HTML + CSS + vanilla JS
@@ -284,6 +285,39 @@ The builder handles Logseq-specific syntax:
 
 Non-image asset links (PDF, ZIP, etc.) automatically get a `download` attribute.
 
+## 🌐 Custom HTML pages
+
+Any subdirectory inside the `pages/` directory (or the directory set by `pages_directory`) that contains at least one `.html` or `.css` file is copied verbatim into the output site.
+
+This lets you embed standalone HTML applications, interactive visualisations, slide decks, or any web content that doesn't go through the Logseq → Pandoc pipeline:
+
+```
+my-logseq/
+└── pages/
+    └── my-app/          ← contains .html or .css → copied as-is
+        ├── index.html
+        ├── style.css
+        └── script.js
+```
+
+Result in the generated site:
+
+```
+output/
+└── my-app/
+    ├── index.html       ← accessible at /my-app/index.html
+    ├── style.css
+    └── script.js
+```
+
+You can then link to it from any Logseq page with a plain URL:
+
+```org
+[[/my-app/index.html][Open my app]]
+```
+
+> Subdirectories containing only non-web files (e.g. plain `.txt` or `.org`) are not copied.
+
 ## 🗂️ Generated site structure
 
 ```
@@ -296,6 +330,8 @@ output/
 ├── style.css
 ├── js/
 │   └── main.js
+├── my-app/             ← subdirectory from pages/ with HTML/CSS (copied as-is)
+│   └── index.html
 └── assets/             ← images and files referenced in Logseq
     └── image.jpg
 ```

@@ -68,6 +68,9 @@ class SiteBuilder:
         unique_assets = list(dict.fromkeys(all_asset_filenames))
         self._writer.copy_assets(unique_assets, logseq_assets_dir)
 
+        pages_dir = logseq_assets_dir.parent / config.pages_directory
+        self._writer.copy_pages_subdirs(pages_dir)
+
     def _process_page(self, page: Page, resolver: LinkResolver, config: SiteConfig) -> str:
         if page.format == "org":
             preprocessed, assets = resolver.preprocess_org(page.raw_content)
