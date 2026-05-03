@@ -24,7 +24,7 @@ class StaticWriter(SiteWriter):
     def write_page(self, page: Page, config: SiteConfig, is_home: bool = False) -> None:
         self._output_dir.mkdir(parents=True, exist_ok=True)
         template = self._env.get_template("page.html")
-        html = template.render(page=page, config=config)
+        html = template.render(page=page, config=config, is_home=is_home)
         filename = "index.html" if is_home else page.output_filename
         (self._output_dir / filename).write_text(html, encoding="utf-8")
 
@@ -72,6 +72,38 @@ class StaticWriter(SiteWriter):
                 if dest.exists():
                     shutil.rmtree(dest)
                 shutil.copytree(subdir, dest)
+
+    def write_sitemap(self, pages: list[Page], journal_pages: list[Page], config: SiteConfig) -> None:
+        if not config.base_url:
+            return
+        self._output_dir.mkdir(parents=True, exist_ok=True)
+        template = self._env.get_template("sitemap.xml")
+
+        entries = []
+        for page in pages:
+            entries.append({
+                "filename": "index.html" if page.slug == config.home_slug else page.output_filename,
+                "date": page.date.isoformat() if page.date else None,
+                "changefreq": "weekly",
+                "priority": "1.0" if page.slug == config.home_slug else "0.8",
+            })
+        for page in journal_pages:
+            entries.append({
+                "filename": page.output_filename,
+                "date": page.date.isoformat() if page.date else None,
+                "changefreq": "never",
+                "priority": "0.6",
+            })
+
+        xml = template.render(pages=entries, config=config)
+        (self._output_dir / "sitemap.xml").write_text(xml, encoding="utf-8")
+
+    def write_robots(self, config: SiteConfig) -> None:
+        self._output_dir.mkdir(parents=True, exist_ok=True)
+        lines = ["User-agent: *", "Allow: /"]
+        if config.base_url:
+            lines.append(f"Sitemap: {config.base_url}/sitemap.xml")
+        (self._output_dir / "robots.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     def write_static_files(self) -> None:
         self._output_dir.mkdir(parents=True, exist_ok=True)

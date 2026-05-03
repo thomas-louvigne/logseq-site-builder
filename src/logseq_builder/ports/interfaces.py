@@ -46,3 +46,9 @@ class SiteWriter(ABC):
     @abstractmethod
     def write_rss(self, journal_pages: list[Page], config: SiteConfig) -> None:
         ...
+
+    def write_sitemap(self, pages: list[Page], journal_pages: list[Page], config: SiteConfig) -> None:
+        ...
+
+    def write_robots(self, config: SiteConfig) -> None:
+        ...

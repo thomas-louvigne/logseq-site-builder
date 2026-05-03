@@ -94,6 +94,7 @@ def main(
     author = site_section.get("author", "")
     description = site_section.get("description", "")
     base_url = site_section.get("base_url", "").rstrip("/")
+    lang = site_section.get("lang", "en")
 
     if not all_public:
         all_public = site_section.get("all_public", False)
@@ -161,6 +162,7 @@ def main(
         author=author,
         description=description,
         base_url=base_url,
+        lang=lang,
         social_links=parsed_socials,
         home_slug=home_slug,
         menu=menu,

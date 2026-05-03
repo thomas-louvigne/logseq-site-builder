@@ -71,6 +71,9 @@ class SiteBuilder:
         pages_dir = logseq_assets_dir.parent / config.pages_directory
         self._writer.copy_pages_subdirs(pages_dir)
 
+        self._writer.write_sitemap(pages, journal_pages, config)
+        self._writer.write_robots(config)
+
     def _process_page(self, page: Page, resolver: LinkResolver, config: SiteConfig) -> str:
         if page.format == "org":
             preprocessed, assets = resolver.preprocess_org(page.raw_content)

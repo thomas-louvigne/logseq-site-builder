@@ -9,6 +9,7 @@ from ..services.link_resolver import slugify
 
 _PUBLIC_TRUE = re.compile(r"#\+PUBLIC:\s*true", re.IGNORECASE)
 _TITLE_DIRECTIVE = re.compile(r"#\+TITLE:\s*(.+)", re.IGNORECASE)
+_DESCRIPTION_DIRECTIVE = re.compile(r"#\+DESCRIPTION:\s*(.+)", re.IGNORECASE)
 
 
 def _decode_logseq_filename(stem: str) -> str:
@@ -23,6 +24,11 @@ def _parse_title(content: str, filename_stem: str) -> str:
         return m.group(1).strip()
     readable = _decode_logseq_filename(filename_stem).replace("-", " ").replace("_", " ")
     return readable.strip()
+
+
+def _parse_description(content: str) -> str:
+    m = _DESCRIPTION_DIRECTIVE.search(content)
+    return m.group(1).strip() if m else ""
 
 
 def _parse_is_public(content: str, all_public: bool) -> bool:
@@ -103,6 +109,7 @@ class LogseqReader(PageRepository):
                 source_path=path,
                 format="org" if path.suffix == ".org" else "md",
                 is_public=is_public,
+                description=_parse_description(content),
             )
 
     def find_journals(self) -> Iterator[Page]:

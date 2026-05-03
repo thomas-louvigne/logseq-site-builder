@@ -8,6 +8,7 @@ title       = "My Logseq Site"
 author      = "First Last"
 description = "My personal knowledge base, generated from Logseq."
 base_url    = "https://example.com"
+lang        = "en"   # HTML lang attribute — used in <html lang="..."> and SEO
 
 # Home page slug. Auto-read from config.edn :default-home if absent.
 home_page = "home"

@@ -12,6 +12,7 @@ class Page:
     format: str  # "org" | "md"
     is_public: bool
     html_content: str = ""
+    description: str = ""
     asset_filenames: list[str] = field(default_factory=list)
     date: datetime.date | None = None  # set for journal/blog posts
 
@@ -41,3 +42,4 @@ class SiteConfig:
     blog_title: str = "Blog"
     blog_slug: str = "blog"
     rss: bool = False
+    lang: str = "en"

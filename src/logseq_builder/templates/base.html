@@ -1,11 +1,30 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ config.lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}{{ config.title }}{% endblock %}</title>
-  {% if config.description %}<meta name="description" content="{{ config.description }}">{% endif %}
+
+  {%- set _page_title = page.title ~ " — " ~ config.title if page is defined else config.title %}
+  {%- set _page_desc = (page.description if page is defined and page.description) or config.description %}
+  {%- set _page_url = (config.base_url ~ "/" ~ (page.output_filename if page is defined else "")) if config.base_url else "" %}
+
+  {% if _page_desc %}<meta name="description" content="{{ _page_desc }}">{% endif %}
   {% if config.author %}<meta name="author" content="{{ config.author }}">{% endif %}
+  {% if _page_url %}<link rel="canonical" href="{{ _page_url }}">{% endif %}
+
+  {# Open Graph #}
+  <meta property="og:title" content="{{ _page_title }}">
+  <meta property="og:type" content="{{ 'article' if page is defined and page.date else 'website' }}">
+  {% if _page_desc %}<meta property="og:description" content="{{ _page_desc }}">{% endif %}
+  {% if _page_url %}<meta property="og:url" content="{{ _page_url }}">{% endif %}
+  {% if config.base_url %}<meta property="og:site_name" content="{{ config.title }}">{% endif %}
+
+  {# Twitter Card #}
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{ _page_title }}">
+  {% if _page_desc %}<meta name="twitter:description" content="{{ _page_desc }}">{% endif %}
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
