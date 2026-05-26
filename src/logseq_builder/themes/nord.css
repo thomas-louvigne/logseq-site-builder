@@ -29,7 +29,7 @@
 
   --nav-width: 224px;
   --header-height: 48px;
-  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Apple Color Emoji", "Noto Color Emoji", "Segoe UI Emoji", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Fira Code", monospace;
   --radius: 8px;
   --radius-sm: 4px;

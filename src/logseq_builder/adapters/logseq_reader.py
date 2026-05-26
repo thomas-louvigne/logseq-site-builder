@@ -6,10 +6,13 @@ from typing import Iterator
 from ..domain.page import Page
 from ..ports.interfaces import PageRepository
 from ..services.link_resolver import slugify
+from .edn_config_loader import load_edn_config
 
-_PUBLIC_TRUE = re.compile(r"#\+PUBLIC:\s*true", re.IGNORECASE)
-_TITLE_DIRECTIVE = re.compile(r"#\+TITLE:\s*(.+)", re.IGNORECASE)
-_DESCRIPTION_DIRECTIVE = re.compile(r"#\+DESCRIPTION:\s*(.+)", re.IGNORECASE)
+_PUBLIC_TRUE = re.compile(r"(?:#\+PUBLIC:\s*true|^public::\s*true\b)", re.IGNORECASE | re.MULTILINE)
+_TITLE_DIRECTIVE = re.compile(r"(?:#\+TITLE:|^title::)\s*(.+)", re.IGNORECASE | re.MULTILINE)
+_DESCRIPTION_DIRECTIVE = re.compile(r"(?:#\+DESCRIPTION:|^description::)\s*(.+)", re.IGNORECASE | re.MULTILINE)
+_ORG_ICON = re.compile(r"^:icon:\s*(.+)", re.MULTILINE)
+_MD_ICON = re.compile(r"^icon::\s*(.+)", re.IGNORECASE | re.MULTILINE)
 
 
 def _decode_logseq_filename(stem: str) -> str:
@@ -28,6 +31,11 @@ def _parse_title(content: str, filename_stem: str) -> str:
 
 def _parse_description(content: str) -> str:
     m = _DESCRIPTION_DIRECTIVE.search(content)
+    return m.group(1).strip() if m else ""
+
+
+def _parse_icon(content: str) -> str:
+    m = _ORG_ICON.search(content) or _MD_ICON.search(content)
     return m.group(1).strip() if m else ""
 
 
@@ -66,20 +74,28 @@ class LogseqReader(PageRepository):
     def __init__(
         self,
         input_dir: Path,
-        all_public: bool = False,
-        pages_directory: str = "pages",
-        journals_directory: str = "journals",
+        all_public: bool | None = None,
+        pages_directory: str | None = None,
+        journals_directory: str | None = None,
         hidden: list[str] | None = None,
-        journal_page_title_format: str = "dd-MM-yyyy",
-        journal_file_name_format: str = "yyyy_MM_dd",
+        journal_page_title_format: str | None = None,
+        journal_file_name_format: str | None = None,
     ) -> None:
         self._input_dir = input_dir
-        self._all_public = all_public
-        self._pages_dir = self._resolve_dir(pages_directory)
-        self._journals_dir = self._resolve_dir(journals_directory)
+
+        edn = load_edn_config(input_dir).get("site", {})
+        self._all_public = all_public if all_public is not None else edn.get("all_public", False)
+        self._default_home_slug: str | None = slugify(edn["home_page"]) if "home_page" in edn else None
+
+        self._pages_dir = self._resolve_dir(pages_directory or edn.get("pages_directory", "pages"))
+        self._journals_dir = self._resolve_dir(journals_directory or edn.get("journals_directory", "journals"))
         self._hidden = [h.lstrip("/") for h in (hidden or [])]
-        self._title_fmt = _java_date_fmt_to_strftime(journal_page_title_format)
-        self._file_name_fmt = _java_date_fmt_to_strftime(journal_file_name_format)
+        self._title_fmt = _java_date_fmt_to_strftime(journal_page_title_format or edn.get("journal_page_title_format", "dd-MM-yyyy"))
+        self._file_name_fmt = _java_date_fmt_to_strftime(journal_file_name_format or edn.get("journal_file_name_format", "yyyy_MM_dd"))
+
+    @property
+    def default_home_slug(self) -> str | None:
+        return self._default_home_slug
 
     def _resolve_dir(self, name: str) -> Path:
         candidate = self._input_dir / name
@@ -110,6 +126,7 @@ class LogseqReader(PageRepository):
                 format="org" if path.suffix == ".org" else "md",
                 is_public=is_public,
                 description=_parse_description(content),
+                icon=_parse_icon(content),
             )
 
     def find_journals(self) -> Iterator[Page]:

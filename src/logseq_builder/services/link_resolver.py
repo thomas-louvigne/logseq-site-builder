@@ -39,6 +39,7 @@ _HASHTAG_COMPOUND = re.compile(r"#\[\[([^\]]+)\]\]")
 _HASHTAG_SIMPLE = re.compile(r"(?<![a-zA-Z0-9_\[])#([A-Za-z][A-Za-z0-9_-]*)")
 _PROPERTIES_BLOCK = re.compile(r":PROPERTIES:.*?:END:", re.DOTALL)
 _LOGBOOK_BLOCK = re.compile(r":LOGBOOK:.*?:END:", re.DOTALL)
+_MD_PROPERTIES_BLOCK = re.compile(r"^(?:[a-z][a-z0-9_-]*::[^\n]*\n?)+", re.IGNORECASE)
 _PUBLIC_DIRECTIVE = re.compile(r"#\+PUBLIC:[^\n]*\n?", re.IGNORECASE)
 _EMPTY_HEADING = re.compile(r"^\*+\s*$", re.MULTILINE)
 
@@ -71,7 +72,9 @@ class LinkResolver:
         """
         assets: list[str] = []
 
+        content = _MD_PROPERTIES_BLOCK.sub("", content)
         content = _PUBLIC_DIRECTIVE.sub("", content)
+        content = _MD_PROPERTIES_BLOCK.sub("", content)
         content = _PROPERTIES_BLOCK.sub("", content)
         content = _LOGBOOK_BLOCK.sub("", content)
         content = _EMPTY_HEADING.sub("", content)
@@ -139,6 +142,8 @@ class LinkResolver:
     def preprocess_md(self, content: str) -> tuple[str, list[str]]:
         """Rewrite Logseq markdown content for pandoc."""
         assets: list[str] = []
+
+        content = _MD_PROPERTIES_BLOCK.sub("", content)
 
         # [[../assets/file]] or [[../assets/file][label]]
         _md_asset = re.compile(r"\[\[\.\.\/assets\/([^\]]+)\](?:\[([^\]]+)\])?\]")

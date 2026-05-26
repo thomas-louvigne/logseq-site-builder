@@ -13,6 +13,7 @@ class Page:
     is_public: bool
     html_content: str = ""
     description: str = ""
+    icon: str = ""
     asset_filenames: list[str] = field(default_factory=list)
     date: datetime.date | None = None  # set for journal/blog posts
 
