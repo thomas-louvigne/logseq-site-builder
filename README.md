@@ -20,6 +20,7 @@ Converts a [Logseq](https://logseq.com/) knowledge base into a static website (H
 - **Custom HTML pages** — subdirectories of `pages/` containing `.html`/`.css` files are copied as-is into the output
 - **Hidden pages** — exclude files or directories from the build
 - **TOML config** — auto-generated on first run, with values pre-filled from `config.edn`
+- **Full-text search** — client-side fuzzy search powered by [Fuse.js](https://fusejs.io/), index generated at build time, no server needed
 - **Zero JS framework** — output is plain HTML + CSS + vanilla JS
 
 ## ⚙️ How it works
@@ -329,7 +330,9 @@ output/
 ├── feed.xml            ← RSS feed (when rss = true)
 ├── style.css
 ├── js/
-│   └── main.js
+│   ├── main.js
+│   ├── fuse.min.js         ← Fuse.js fuzzy-search library
+│   └── search.js           ← generated search index
 ├── my-app/             ← subdirectory from pages/ with HTML/CSS (copied as-is)
 │   └── index.html
 └── assets/             ← images and files referenced in Logseq
