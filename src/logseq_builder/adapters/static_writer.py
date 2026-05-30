@@ -1,3 +1,5 @@
+import json
+import re
 import shutil
 from pathlib import Path
 
@@ -105,6 +107,17 @@ class StaticWriter(SiteWriter):
             lines.append(f"Sitemap: {config.base_url}/sitemap.xml")
         (self._output_dir / "robots.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
+    def write_search_index(self, pages: list[Page], journal_pages: list[Page], config: SiteConfig) -> None:
+        self._output_dir.mkdir(parents=True, exist_ok=True)
+        entries = []
+        for page in pages:
+            url = "index.html" if page.slug == config.home_slug else page.output_filename
+            entries.append({"title": page.title, "url": url, "content": _strip_html(page.html_content)})
+        for page in journal_pages:
+            entries.append({"title": page.title, "url": page.output_filename, "content": _strip_html(page.html_content)})
+        js = "window.__SEARCH_DATA__ = " + json.dumps(entries, ensure_ascii=False) + ";"
+        (self._output_dir / "js" / "search.js").write_text(js, encoding="utf-8")
+
     def write_static_files(self) -> None:
         self._output_dir.mkdir(parents=True, exist_ok=True)
         js_out = self._output_dir / "js"
@@ -114,6 +127,12 @@ class StaticWriter(SiteWriter):
         if css_src.exists():
             shutil.copy2(css_src, self._output_dir / "style.css")
 
-        js_src = _STATIC_DIR / "js" / "main.js"
-        if js_src.exists():
-            shutil.copy2(js_src, js_out / "main.js")
+        for js_name in ("main.js", "fuse.min.js"):
+            js_src = _STATIC_DIR / "js" / js_name
+            if js_src.exists():
+                shutil.copy2(js_src, js_out / js_name)
+
+
+def _strip_html(html: str) -> str:
+    text = re.sub(r"<[^>]+>", " ", html)
+    return re.sub(r"\s+", " ", text).strip()

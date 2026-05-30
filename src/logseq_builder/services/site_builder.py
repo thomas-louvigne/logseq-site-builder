@@ -73,6 +73,7 @@ class SiteBuilder:
 
         self._writer.write_sitemap(pages, journal_pages, config)
         self._writer.write_robots(config)
+        self._writer.write_search_index(pages, journal_pages, config)
 
     def _process_page(self, page: Page, resolver: LinkResolver, config: SiteConfig) -> str:
         if page.format == "org":

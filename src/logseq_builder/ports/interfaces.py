@@ -52,3 +52,6 @@ class SiteWriter(ABC):
 
     def write_robots(self, config: SiteConfig) -> None:
         ...
+
+    def write_search_index(self, pages: list[Page], journal_pages: list[Page], config: SiteConfig) -> None:
+        ...
