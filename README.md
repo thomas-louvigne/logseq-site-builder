@@ -23,6 +23,12 @@ Converts a [Logseq](https://logseq.com/) knowledge base into a static website (H
 - **Full-text search** — client-side fuzzy search powered by [Fuse.js](https://fusejs.io/), index generated at build time, no server needed
 - **Zero JS framework** — output is plain HTML + CSS + vanilla JS
 
+## 🌍 Examples
+
+| Site | Source |
+|---|---|
+| [chroniques-insoumises.com](https://chroniques-insoumises.com/) | Logseq knowledge base, default theme |
+
 ## ⚙️ How it works
 
 ```

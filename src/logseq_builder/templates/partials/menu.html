@@ -43,6 +43,14 @@
     {% endif %}
   </ul>
 
+  <div class="site-nav__search">
+    <span class="site-nav__section-label">Recherche</span>
+    <div class="site-nav__search-wrap">
+      <input type="search" id="site-search" class="site-nav__search-input" placeholder="Rechercher…" aria-label="Rechercher" autocomplete="off">
+    </div>
+    <ul class="site-nav__search-results" id="search-results" hidden></ul>
+  </div>
+
   {% if config.social_links %}
   <div class="site-nav__socials">
     <span class="site-nav__section-label">Réseaux</span>
@@ -58,12 +66,4 @@
     </ul>
   </div>
   {% endif %}
-
-  <div class="site-nav__search">
-    <div class="site-nav__search-wrap">
-      <input type="search" id="site-search" class="site-nav__search-input" placeholder="Rechercher…" aria-label="Rechercher" autocomplete="off">
-    </div>
-    <button id="site-search-btn" class="site-nav__search-btn">Rechercher</button>
-    <ul class="site-nav__search-results" id="search-results" hidden></ul>
-  </div>
 </nav>
