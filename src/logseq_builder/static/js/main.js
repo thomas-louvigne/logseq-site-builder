@@ -144,25 +144,82 @@
     const results = document.getElementById(resultsId);
     if (!input || !results) return;
 
+    let activeIdx = -1;
+
+    function getItems() {
+      return results.querySelectorAll(".site-nav__search-suggestion");
+    }
+
+    function setActive(idx) {
+      const items = getItems();
+      items.forEach(function (li, i) {
+        li.classList.toggle("site-nav__search-suggestion--active", i === idx);
+      });
+      activeIdx = idx;
+    }
+
     input.addEventListener("input", function () {
       const q = input.value.trim();
+      activeIdx = -1;
       if (q.length < 3) { results.hidden = true; return; }
       if (!fuse) return;
       showDropdown(results, fuse.search(q, { limit: 6 }), q);
     });
 
     input.addEventListener("keydown", function (e) {
+      if (!results.hidden && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+        e.preventDefault();
+        const items = getItems();
+        if (!items.length) return;
+        const next = e.key === "ArrowDown"
+          ? Math.min(activeIdx + 1, items.length - 1)
+          : Math.max(activeIdx - 1, 0);
+        setActive(next);
+        const link = items[next].querySelector("a");
+        if (link) link.focus();
+        return;
+      }
+      if (e.key === "Escape") {
+        results.hidden = true;
+        activeIdx = -1;
+        return;
+      }
       if (e.key === "Enter") {
         e.preventDefault();
+        if (activeIdx >= 0) {
+          const items = getItems();
+          const link = items[activeIdx] && items[activeIdx].querySelector("a");
+          if (link) { link.click(); return; }
+        }
         const q = input.value.trim();
         if (!q) return;
+        results.hidden = true;
         showInMain(fuse ? fuse.search(q, { limit: 20 }) : [], q);
       }
     });
 
-    document.addEventListener("click", function (e) {
-      if (!input.contains(e.target) && !results.contains(e.target)) {
+    results.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const items = getItems();
+        const next = e.key === "ArrowDown"
+          ? Math.min(activeIdx + 1, items.length - 1)
+          : Math.max(activeIdx - 1, 0);
+        setActive(next);
+        const link = items[next] && items[next].querySelector("a");
+        if (link) link.focus(); else input.focus();
+      }
+      if (e.key === "Escape") {
         results.hidden = true;
+        activeIdx = -1;
+        input.focus();
+      }
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!input.closest(".site-nav__search-box").contains(e.target)) {
+        results.hidden = true;
+        activeIdx = -1;
       }
     });
   }

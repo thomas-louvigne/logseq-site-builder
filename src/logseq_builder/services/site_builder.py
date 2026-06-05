@@ -32,11 +32,7 @@ class SiteBuilder:
         # Process regular pages
         resolver = LinkResolver(pages, config.home_slug)
         all_asset_filenames: list[str] = []
-        for page in pages:
-            page.html_content = self._process_page(page, resolver, config)
-            all_asset_filenames.extend(page.asset_filenames)
-            if on_progress:
-                on_progress(page.title)
+        self._process_pages(pages, resolver, config, all_asset_filenames, on_progress)
 
         # Process journal pages (blog)
         journal_pages: list[Page] = []
@@ -44,11 +40,7 @@ class SiteBuilder:
             journal_pages = list(self._reader.find_journals())
             if journal_pages:
                 journal_resolver = LinkResolver(pages + journal_pages, config.home_slug)
-                for page in journal_pages:
-                    page.html_content = self._process_page(page, journal_resolver, config)
-                    all_asset_filenames.extend(page.asset_filenames)
-                    if on_progress:
-                        on_progress(page.title)
+                self._process_pages(journal_pages, journal_resolver, config, all_asset_filenames, on_progress)
 
         home = self._find_home(pages, config.home_slug)
 
@@ -74,6 +66,20 @@ class SiteBuilder:
         self._writer.write_sitemap(pages, journal_pages, config)
         self._writer.write_robots(config)
         self._writer.write_search_index(pages, journal_pages, config)
+
+    def _process_pages(
+        self,
+        pages: list[Page],
+        resolver: LinkResolver,
+        config: SiteConfig,
+        all_assets: list[str],
+        on_progress: Callable[[str], None] | None,
+    ) -> None:
+        for page in pages:
+            page.html_content = self._process_page(page, resolver, config)
+            all_assets.extend(page.asset_filenames)
+            if on_progress:
+                on_progress(page.title)
 
     def _process_page(self, page: Page, resolver: LinkResolver, config: SiteConfig) -> str:
         if page.format == "org":

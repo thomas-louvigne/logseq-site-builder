@@ -45,10 +45,13 @@
 
   <div class="site-nav__search">
     <span class="site-nav__section-label">Recherche</span>
-    <div class="site-nav__search-wrap">
-      <input type="search" id="site-search" class="site-nav__search-input" placeholder="Rechercher…" aria-label="Rechercher" autocomplete="off">
+    <div class="site-nav__search-box">
+      <div class="site-nav__search-wrap">
+        <span class="site-nav__search-icon" aria-hidden="true">🔍</span>
+        <input type="search" id="site-search" class="site-nav__search-input" placeholder="Rechercher…" aria-label="Rechercher" autocomplete="off">
+      </div>
+      <ul class="site-nav__search-results" id="search-results" hidden></ul>
     </div>
-    <ul class="site-nav__search-results" id="search-results" hidden></ul>
   </div>
 
   {% if config.social_links %}

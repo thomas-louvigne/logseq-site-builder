@@ -42,6 +42,9 @@ _LOGBOOK_BLOCK = re.compile(r":LOGBOOK:.*?:END:", re.DOTALL)
 _MD_PROPERTIES_BLOCK = re.compile(r"^(?:[a-z][a-z0-9_-]*::[^\n]*\n?)+", re.IGNORECASE)
 _PUBLIC_DIRECTIVE = re.compile(r"#\+PUBLIC:[^\n]*\n?", re.IGNORECASE)
 _EMPTY_HEADING = re.compile(r"^\*+\s*$", re.MULTILINE)
+_MD_ASSET_REL = re.compile(r"\[\[\.\.\/assets\/([^\]]+)\](?:\[([^\]]+)\])?\]")
+_MD_LABELED_LINK = re.compile(r"\[\[([^\]]+)\]\[([^\]]+)\]\]")
+_MD_SIMPLE_LINK = re.compile(r"\[\[([^\]]+)\]\]")
 
 
 class LinkResolver:
@@ -145,11 +148,6 @@ class LinkResolver:
 
         content = _MD_PROPERTIES_BLOCK.sub("", content)
 
-        # [[../assets/file]] or [[../assets/file][label]]
-        _md_asset = re.compile(r"\[\[\.\.\/assets\/([^\]]+)\](?:\[([^\]]+)\])?\]")
-        _md_labeled = re.compile(r"\[\[([^\]]+)\]\[([^\]]+)\]\]")
-        _md_simple = re.compile(r"\[\[([^\]]+)\]\]")
-
         def replace_asset(m: re.Match) -> str:
             filename, label = m.group(1), m.group(2)
             assets.append(filename)
@@ -159,7 +157,7 @@ class LinkResolver:
                 return f"![{display}](assets/{filename})"
             return f"[{display}](assets/{filename})"
 
-        content = _md_asset.sub(replace_asset, content)
+        content = _MD_ASSET_REL.sub(replace_asset, content)
 
         def replace_labeled(m: re.Match) -> str:
             target, label = m.group(1), m.group(2)
@@ -175,7 +173,7 @@ class LinkResolver:
             href = self._page_name_to_href(target)
             return f"[{label}]({href})"
 
-        content = _md_labeled.sub(replace_labeled, content)
+        content = _MD_LABELED_LINK.sub(replace_labeled, content)
 
         # Compound hashtag before simple link (same ordering logic as org).
         def replace_hashtag_compound_md(m: re.Match) -> str:
@@ -199,7 +197,7 @@ class LinkResolver:
             href = self._page_name_to_href(target)
             return f"[{target}]({href})"
 
-        content = _md_simple.sub(replace_simple, content)
+        content = _MD_SIMPLE_LINK.sub(replace_simple, content)
 
         def replace_hashtag_simple_md(m: re.Match) -> str:
             tag = m.group(1)

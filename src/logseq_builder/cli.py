@@ -17,6 +17,76 @@ from .services.site_builder import SiteBuilder
 _TOML_FILENAME = "logseq-site-builder.toml"
 
 
+def _build_site_config(
+    toml: dict,
+    title: str,
+    home_page: str | None,
+    social_links: tuple[str, ...],
+    public_pages: list,
+) -> "SiteConfig":
+    site_section = toml.get("site", {})
+
+    parsed_socials: dict[str, str] = dict(toml.get("social_networks", {}))
+    for entry in social_links:
+        if ":" not in entry:
+            click.echo(f"Warning: ignoring malformed --social '{entry}' (expected NAME:URL)", err=True)
+            continue
+        name, _, url = entry.partition(":")
+        parsed_socials[name.strip()] = url.strip()
+
+    menu: list[dict[str, str]] = toml.get("menu", [])
+
+    raw_flatten = site_section.get("flatten_headings_from")
+    flatten_headings_from: int | None = int(raw_flatten) if raw_flatten is not None else None
+
+    hidden: list[str] = site_section.get("hidden", [])
+    pages_directory: str = site_section.get("pages_directory", "pages")
+    journals_directory: str = site_section.get("journals_directory", "journals")
+    enable_journals: bool = site_section.get("enable_journals", False)
+    journal_page_title_format: str = site_section.get("journal_page_title_format", "dd-MM-yyyy")
+    journal_file_name_format: str = site_section.get("journal_file_name_format", "yyyy_MM_dd")
+    blog_title: str = site_section.get("blog_title", "Blog")
+    blog_slug: str = site_section.get("blog_slug", "blog")
+    rss: bool = site_section.get("rss", False)
+
+    toml_home = site_section.get("home_page")
+    raw_home = home_page or toml_home
+    home_slug = slugify(raw_home) if raw_home else _auto_detect_home(public_pages)
+
+    public_slugs = {p.slug for p in public_pages}
+    public_filename_slugs = {slugify(p.source_path.stem) for p in public_pages}
+    if raw_home and home_slug not in public_slugs and home_slug not in public_filename_slugs:
+        click.echo(
+            f"Warning: no public page matches home_page='{raw_home}' (slug: '{home_slug}').\n"
+            f"  Available slugs: {sorted(public_slugs)}",
+            err=True,
+        )
+
+    if enable_journals and not any(item.get("slug") == blog_slug for item in menu):
+        menu = list(menu) + [{"label": blog_title, "slug": blog_slug}]
+
+    return SiteConfig(
+        title=title,
+        author=site_section.get("author", ""),
+        description=site_section.get("description", ""),
+        base_url=site_section.get("base_url", "").rstrip("/"),
+        lang=site_section.get("lang", "en"),
+        social_links=parsed_socials,
+        home_slug=home_slug,
+        menu=menu,
+        flatten_headings_from=flatten_headings_from,
+        hidden=hidden,
+        pages_directory=pages_directory,
+        journals_directory=journals_directory,
+        enable_journals=enable_journals,
+        journal_page_title_format=journal_page_title_format,
+        journal_file_name_format=journal_file_name_format,
+        blog_title=blog_title,
+        blog_slug=blog_slug,
+        rss=rss,
+    )
+
+
 def _resolve_theme_css(theme: str, logseq_dir: Path) -> Path | None:
     """Resolve a theme name or path to an absolute CSS file path.
 
@@ -89,48 +159,17 @@ def main(
         click.echo(f"Loaded config from {toml_path}")
 
     site_section = toml.get("site", {})
-
+    all_public = all_public or site_section.get("all_public", False)
     title = site_title or site_section.get("title") or input_dir.name
-    author = site_section.get("author", "")
-    description = site_section.get("description", "")
-    base_url = site_section.get("base_url", "").rstrip("/")
-    lang = site_section.get("lang", "en")
-
-    if not all_public:
-        all_public = site_section.get("all_public", False)
-
-    parsed_socials: dict[str, str] = dict(toml.get("social_networks", {}))
-    for entry in social_links:
-        if ":" not in entry:
-            click.echo(f"Warning: ignoring malformed --social '{entry}' (expected NAME:URL)", err=True)
-            continue
-        name, _, url = entry.partition(":")
-        parsed_socials[name.strip()] = url.strip()
-
-    menu: list[dict[str, str]] = toml.get("menu", [])
-
-    raw_flatten = site_section.get("flatten_headings_from")
-    flatten_headings_from: int | None = int(raw_flatten) if raw_flatten is not None else None
-
-    # config.edn-sourced options (overridable in TOML)
-    hidden: list[str] = site_section.get("hidden", [])
-    pages_directory: str = site_section.get("pages_directory", "pages")
-    journals_directory: str = site_section.get("journals_directory", "journals")
-    enable_journals: bool = site_section.get("enable_journals", False)
-    journal_page_title_format: str = site_section.get("journal_page_title_format", "dd-MM-yyyy")
-    journal_file_name_format: str = site_section.get("journal_file_name_format", "yyyy_MM_dd")
-    blog_title: str = site_section.get("blog_title", "Blog")
-    blog_slug: str = site_section.get("blog_slug", "blog")
-    rss: bool = site_section.get("rss", False)
 
     reader = LogseqReader(
         input_dir,
         all_public=all_public,
-        pages_directory=pages_directory,
-        journals_directory=journals_directory,
-        hidden=hidden,
-        journal_page_title_format=journal_page_title_format,
-        journal_file_name_format=journal_file_name_format,
+        pages_directory=site_section.get("pages_directory", "pages"),
+        journals_directory=site_section.get("journals_directory", "journals"),
+        hidden=site_section.get("hidden", []),
+        journal_page_title_format=site_section.get("journal_page_title_format", "dd-MM-yyyy"),
+        journal_file_name_format=site_section.get("journal_file_name_format", "yyyy_MM_dd"),
     )
 
     all_pages = list(reader.find_all())
@@ -140,43 +179,7 @@ def main(
         click.echo("No public pages found. Use --all-public or add #+PUBLIC: true to pages.", err=True)
         sys.exit(1)
 
-    toml_home = site_section.get("home_page")
-    raw_home = home_page or toml_home
-    home_slug = slugify(raw_home) if raw_home else _auto_detect_home(public_pages)
-
-    public_slugs = {p.slug for p in public_pages}
-    public_filename_slugs = {slugify(p.source_path.stem) for p in public_pages}
-    if raw_home and home_slug not in public_slugs and home_slug not in public_filename_slugs:
-        click.echo(
-            f"Warning: no public page matches home_page='{raw_home}' (slug: '{home_slug}').\n"
-            f"  Available slugs: {sorted(public_slugs)}",
-            err=True,
-        )
-
-    # Auto-add blog link to menu when journals are enabled and not already present
-    if enable_journals and not any(item.get("slug") == blog_slug for item in menu):
-        menu = list(menu) + [{"label": blog_title, "slug": blog_slug}]
-
-    config = SiteConfig(
-        title=title,
-        author=author,
-        description=description,
-        base_url=base_url,
-        lang=lang,
-        social_links=parsed_socials,
-        home_slug=home_slug,
-        menu=menu,
-        flatten_headings_from=flatten_headings_from,
-        hidden=hidden,
-        pages_directory=pages_directory,
-        journals_directory=journals_directory,
-        enable_journals=enable_journals,
-        journal_page_title_format=journal_page_title_format,
-        journal_file_name_format=journal_file_name_format,
-        blog_title=blog_title,
-        blog_slug=blog_slug,
-        rss=rss,
-    )
+    config = _build_site_config(toml, title, home_page, social_links, public_pages)
 
     logseq_assets_dir = input_dir / "assets"
 
@@ -204,11 +207,11 @@ def main(
     click.echo(f"Building site from {input_dir} → {output_dir}")
     click.echo(f"  {len(public_pages)} public page(s) found")
     journal_count = 0
-    if enable_journals:
+    if config.enable_journals:
         journal_count = sum(1 for _ in reader.find_journals())
         click.echo(f"  {journal_count} journal entry(ies) found")
-    if hidden:
-        click.echo(f"  {len(hidden)} hidden path(s): {hidden}")
+    if config.hidden:
+        click.echo(f"  {len(config.hidden)} hidden path(s): {config.hidden}")
 
     total_pages = len(public_pages) + journal_count
     try:
@@ -221,7 +224,7 @@ def main(
         sys.exit(1)
 
     click.echo(f"Done. Site written to {output_dir}")
-    if enable_journals and rss:
+    if config.enable_journals and config.rss:
         click.echo(f"  RSS feed: {output_dir / 'feed.xml'}")
 
     if shutil.which("notify-send"):
