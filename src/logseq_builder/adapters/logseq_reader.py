@@ -1,5 +1,6 @@
 import datetime
 import re
+import urllib.parse
 from pathlib import Path
 from typing import Iterator
 
@@ -25,7 +26,8 @@ def _parse_title(content: str, filename_stem: str) -> str:
     m = _TITLE_DIRECTIVE.search(content)
     if m:
         return m.group(1).strip()
-    readable = _decode_logseq_filename(filename_stem).replace("-", " ").replace("_", " ")
+    decoded = urllib.parse.unquote(_decode_logseq_filename(filename_stem))
+    readable = decoded.replace("-", " ").replace("_", " ")
     return readable.strip()
 
 

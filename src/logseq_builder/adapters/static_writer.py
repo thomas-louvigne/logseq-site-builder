@@ -16,7 +16,9 @@ THEMES_DIR = Path(__file__).parent.parent / "themes"
 class StaticWriter(SiteWriter):
     def __init__(self, output_dir: Path, theme_css: Path | None = None) -> None:
         self._output_dir = output_dir
-        self._output_dir.mkdir(parents=True, exist_ok=True)
+        if output_dir.exists():
+            shutil.rmtree(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
         self._theme_css = theme_css
         self._env = Environment(
             loader=FileSystemLoader(str(_TEMPLATES_DIR)),

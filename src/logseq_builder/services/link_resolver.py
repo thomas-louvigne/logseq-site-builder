@@ -26,7 +26,11 @@ def slugify(text: str) -> str:
 def _looks_like_file(target: str) -> bool:
     """True when the target has a non-page file extension (e.g. .pdf, .map, .zip)."""
     suffix = Path(target.split("/")[-1]).suffix.lower()
-    return bool(suffix) and suffix not in _PAGE_EXTENSIONS
+    # Reject suffixes that contain spaces or are longer than 8 chars — those are
+    # names with dots that aren't extensions (e.g. "Dr. Livia Morozov" → ". Livia Morozov").
+    if not re.match(r'^\.[a-z0-9]{1,8}$', suffix):
+        return False
+    return suffix not in _PAGE_EXTENSIONS
 
 
 # [[../assets/file]] or [[../assets/file][label]]
@@ -36,7 +40,7 @@ _SIMPLE_LINK = re.compile(r"\[\[([^\]]+)\]\]")
 _HASHTAG_COMPOUND = re.compile(r"#\[\[([^\]]+)\]\]")
 # Matches #word hashtags — excludes #+directives, #[[compound]] (handled separately),
 # and labels already inside generated links (preceded by [ in org ][#tag] or md [#tag]).
-_HASHTAG_SIMPLE = re.compile(r"(?<![a-zA-Z0-9_\[])#([A-Za-z][A-Za-z0-9_-]*)")
+_HASHTAG_SIMPLE = re.compile(r"(?<![a-zA-Z0-9_\[])#([^\W\d_][\w-]*)")
 _PROPERTIES_BLOCK = re.compile(r":PROPERTIES:.*?:END:", re.DOTALL)
 _LOGBOOK_BLOCK = re.compile(r":LOGBOOK:.*?:END:", re.DOTALL)
 _MD_PROPERTIES_BLOCK = re.compile(r"^(?:[a-z][a-z0-9_-]*::[^\n]*\n?)+", re.IGNORECASE)

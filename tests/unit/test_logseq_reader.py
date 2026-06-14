@@ -33,6 +33,14 @@ class TestParseTitle:
         content = "* Content"
         assert _parse_title(content, "Gustave-Coste") == "Gustave Coste"
 
+    def test_filename_percent_encoded_question_mark(self):
+        content = "* Content"
+        assert _parse_title(content, "Quête-Qui a tué Morland %3F") == "Quête Qui a tué Morland ?"
+
+    def test_filename_percent_encoded_colon(self):
+        content = "* Content"
+        assert _parse_title(content, "Quête Tracogna %3A Au revoir Valtracon") == "Quête Tracogna : Au revoir Valtracon"
+
 
 class TestParseIsPublic:
     def test_public_true(self):

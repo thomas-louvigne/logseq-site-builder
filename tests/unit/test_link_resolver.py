@@ -100,3 +100,14 @@ class TestLinkResolverOrg:
         _, assets = resolver.preprocess_org(content)
         assert "a.jpg" in assets
         assert "b.png" in assets
+
+    def test_hashtag_with_accented_chars(self, resolver):
+        content = "* #quêtes"
+        result, _ = resolver.preprocess_org(content)
+        assert "[[file:quetes.html][#quêtes]]" in result
+
+    def test_simple_link_with_dotted_name(self, resolver):
+        content = "Parler à [[Dr. Livia Morozov]] pour plus d'infos."
+        result, _ = resolver.preprocess_org(content)
+        assert "[[file:dr-livia-morozov.html][Dr. Livia Morozov]]" in result
+        assert "assets" not in result
