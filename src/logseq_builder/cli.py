@@ -144,6 +144,13 @@ def _resolve_theme_css(theme: str, logseq_dir: Path) -> Path | None:
     default=False,
     help="List internal links that point to no known page (would 404) in the terminal.",
 )
+@click.option(
+    "--zip",
+    "zip_output",
+    is_flag=True,
+    default=False,
+    help="Zip the built site into <output_dir>.zip once the build is complete.",
+)
 def main(
     input_dir: Path,
     output_dir: Path,
@@ -154,6 +161,7 @@ def main(
     no_init_toml: bool,
     theme: str | None,
     check_links: bool,
+    zip_output: bool,
 ) -> None:
     """Build a static website from a Logseq knowledge base."""
     toml_path = input_dir / _TOML_FILENAME
@@ -236,6 +244,10 @@ def main(
 
     if check_links:
         _report_broken_links(builder.broken_links)
+
+    if zip_output:
+        archive_path = shutil.make_archive(str(output_dir), "zip", root_dir=output_dir)
+        click.echo(f"  Zipped to {archive_path}")
 
     if shutil.which("notify-send"):
         subprocess.run(

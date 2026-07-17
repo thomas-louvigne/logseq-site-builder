@@ -410,6 +410,7 @@ logseq-builder <logseq_dir> <output_dir> [OPTIONS]
 | `--theme NAME_OR_PATH` | Theme name (`default`, `dark`) or path to a CSS file |
 | `--no-init-toml` | Do not generate `logseq-site-builder.toml` on first run |
 | `--check-links` | List internal links pointing to no known page (would 404) in the terminal |
+| `--zip` | Zip the built site into `<output_dir>.zip` once the build is complete |
 
 ### Examples
 
