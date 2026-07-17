@@ -138,6 +138,12 @@ def _resolve_theme_css(theme: str, logseq_dir: Path) -> Path | None:
     default=None,
     help='Theme name (e.g. "dark") or path to a CSS file (relative to the Logseq dir).',
 )
+@click.option(
+    "--check-links",
+    is_flag=True,
+    default=False,
+    help="List internal links that point to no known page (would 404) in the terminal.",
+)
 def main(
     input_dir: Path,
     output_dir: Path,
@@ -147,6 +153,7 @@ def main(
     social_links: tuple[str, ...],
     no_init_toml: bool,
     theme: str | None,
+    check_links: bool,
 ) -> None:
     """Build a static website from a Logseq knowledge base."""
     toml_path = input_dir / _TOML_FILENAME
@@ -227,12 +234,30 @@ def main(
     if config.enable_journals and config.rss:
         click.echo(f"  RSS feed: {output_dir / 'feed.xml'}")
 
+    if check_links:
+        _report_broken_links(builder.broken_links)
+
     if shutil.which("notify-send"):
         subprocess.run(
             ["notify-send", "--icon=dialog-information", "logseq-builder",
              f"Build complete — {total_pages} page(s) → {output_dir}"],
             check=False,
         )
+
+
+def _report_broken_links(broken_links: list[tuple[str, str]]) -> None:
+    if not broken_links:
+        click.echo("\nNo broken links found.")
+        return
+
+    click.echo(f"\n{len(broken_links)} broken link(s) found (would 404):")
+    by_target: dict[str, list[str]] = {}
+    for source, target in broken_links:
+        by_target.setdefault(target, []).append(source)
+    for target, sources in sorted(by_target.items()):
+        click.echo(f"  [[{target}]]")
+        for source in sources:
+            click.echo(f"    referenced in: {source}")
 
 
 def _auto_detect_home(pages) -> str:  # type: ignore[type-arg]

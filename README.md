@@ -292,6 +292,25 @@ The builder handles Logseq-specific syntax:
 
 Non-image asset links (PDF, ZIP, etc.) automatically get a `download` attribute.
 
+### Checking for broken links
+
+`[[Page name]]` links that don't match any known page still build (they link to a
+slugified filename), but that filename never gets written — a silent 404. Pass
+`--check-links` to list them in the terminal after the build, grouped by target
+with the source page(s) that reference them:
+
+```bash
+logseq-builder ~/my-logseq ~/Sites/my-site --check-links
+```
+
+```
+2 broken link(s) found (would 404):
+  [[Old Page Name]]
+    referenced in: Dragons
+  [[Typo Reference]]
+    referenced in: Accueil
+```
+
 ## 🌐 Custom HTML pages
 
 Any subdirectory inside the `pages/` directory (or the directory set by `pages_directory`) that contains at least one `.html` or `.css` file is copied verbatim into the output site.
@@ -390,6 +409,7 @@ logseq-builder <logseq_dir> <output_dir> [OPTIONS]
 | `--social NAME:URL` | Social link in the nav menu (repeatable) |
 | `--theme NAME_OR_PATH` | Theme name (`default`, `dark`) or path to a CSS file |
 | `--no-init-toml` | Do not generate `logseq-site-builder.toml` on first run |
+| `--check-links` | List internal links pointing to no known page (would 404) in the terminal |
 
 ### Examples
 

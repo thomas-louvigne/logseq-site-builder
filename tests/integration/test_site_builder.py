@@ -100,6 +100,31 @@ class TestSiteBuilder:
         html = (output_dir / "dragons.html").read_text(encoding="utf-8")
         assert 'href="index.html"' in html
 
+    def test_broken_links_empty_when_all_links_resolve(self, logseq_dir, output_dir, config):
+        builder = SiteBuilder(
+            reader=LogseqReader(logseq_dir),
+            converter=PandocConverter(),
+            writer=StaticWriter(output_dir),
+        )
+        builder.build(config, logseq_dir / "assets")
+        assert builder.broken_links == []
+
+    def test_broken_links_reports_unresolved_page(self, tmp_path):
+        pages = tmp_path / "pages"
+        pages.mkdir()
+        (pages / "Accueil.org").write_text(
+            "#+PUBLIC: true\n* Bienvenue\nVoir [[Page Fantome]] pour plus.\n",
+            encoding="utf-8",
+        )
+        out = tmp_path / "out"
+        builder = SiteBuilder(
+            reader=LogseqReader(tmp_path),
+            converter=PandocConverter(),
+            writer=StaticWriter(out),
+        )
+        builder.build(SiteConfig(title="T", home_slug="accueil"), tmp_path / "assets")
+        assert builder.broken_links == [("Accueil", "Page Fantome")]
+
     def test_raises_on_no_public_pages(self, tmp_path):
         pages = tmp_path / "pages"
         pages.mkdir()

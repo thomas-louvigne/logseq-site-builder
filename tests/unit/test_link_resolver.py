@@ -94,6 +94,7 @@ class TestLinkResolverOrg:
         content = "See [[Unknown Page]]."
         result, _ = resolver.preprocess_org(content)
         assert "[[file:unknown-page.html][Unknown Page]]" in result
+        assert resolver.broken_links == [("", "Unknown Page")]
 
     def test_multiple_assets_collected(self, resolver):
         content = "[[../assets/a.jpg]] and [[../assets/b.png]]"
@@ -111,3 +112,30 @@ class TestLinkResolverOrg:
         result, _ = resolver.preprocess_org(content)
         assert "[[file:dr-livia-morozov.html][Dr. Livia Morozov]]" in result
         assert "assets" not in result
+
+
+class TestBrokenLinks:
+    def test_known_link_not_flagged(self, resolver):
+        resolver.preprocess_org("See [[Dragons]].")
+        assert resolver.broken_links == []
+
+    def test_unknown_link_flagged_with_source(self, resolver):
+        resolver.preprocess_org("See [[Nowhere]].", source="Dragons")
+        assert resolver.broken_links == [("Dragons", "Nowhere")]
+
+    def test_unknown_labeled_link_flagged(self, resolver):
+        resolver.preprocess_org("See [[Nowhere][here]].", source="Dragons")
+        assert resolver.broken_links == [("Dragons", "Nowhere")]
+
+    def test_unknown_hashtag_flagged(self, resolver):
+        resolver.preprocess_org("Tag: #nowhere", source="Dragons")
+        assert resolver.broken_links == [("Dragons", "nowhere")]
+
+    def test_markdown_unknown_link_flagged(self, resolver):
+        resolver.preprocess_md("See [[Nowhere]].", source="Dragons")
+        assert resolver.broken_links == [("Dragons", "Nowhere")]
+
+    def test_multiple_pages_accumulate(self, resolver):
+        resolver.preprocess_org("See [[Nowhere]].", source="Dragons")
+        resolver.preprocess_org("See [[Elsewhere]].", source="Accueil")
+        assert resolver.broken_links == [("Dragons", "Nowhere"), ("Accueil", "Elsewhere")]

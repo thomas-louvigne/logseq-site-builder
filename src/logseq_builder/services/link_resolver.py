@@ -55,6 +55,8 @@ class LinkResolver:
     def __init__(self, pages: list[Page], home_slug: str) -> None:
         self._slug_map = self._build_slug_map(pages)
         self._home_slug = home_slug
+        # (source_page_title, target) pairs for links that resolve to no known page.
+        self.broken_links: list[tuple[str, str]] = []
 
     def _build_slug_map(self, pages: list[Page]) -> dict[str, str]:
         slug_map: dict[str, str] = {}
@@ -68,11 +70,14 @@ class LinkResolver:
         # pandoc org parser requires "file:" prefix to emit a real <a> tag
         return f"file:{filename}"
 
-    def _page_name_to_href(self, target: str) -> str:
-        slug = self._slug_map.get(target.lower(), slugify(target))
+    def _page_name_to_href(self, target: str, source: str = "") -> str:
+        slug = self._slug_map.get(target.lower())
+        if slug is None:
+            slug = slugify(target)
+            self.broken_links.append((source, target))
         return self._slug_to_href(slug)
 
-    def preprocess_org(self, content: str) -> tuple[str, list[str]]:
+    def preprocess_org(self, content: str, source: str = "") -> tuple[str, list[str]]:
         """Clean and rewrite Logseq org content for pandoc.
 
         Returns (processed_content, list_of_asset_filenames).
@@ -107,7 +112,7 @@ class LinkResolver:
                 basename = Path(target).name
                 assets.append(basename)
                 return f"[[file:assets/{basename}][{label}]]"
-            href = self._page_name_to_href(target)
+            href = self._page_name_to_href(target, source)
             return f"[[{href}][{label}]]"
 
         content = _LABELED_LINK.sub(replace_labeled, content)
@@ -118,7 +123,7 @@ class LinkResolver:
         # immediately after the target, which won't match the ][label]] suffix.
         def replace_hashtag_compound(m: re.Match) -> str:
             tag = m.group(1)
-            href = self._page_name_to_href(tag)
+            href = self._page_name_to_href(tag, source)
             return f"[[{href}][#{tag}]]"
 
         content = _HASHTAG_COMPOUND.sub(replace_hashtag_compound, content)
@@ -131,7 +136,7 @@ class LinkResolver:
                 basename = Path(target).name
                 assets.append(basename)
                 return f"[[file:assets/{basename}]]"
-            href = self._page_name_to_href(target)
+            href = self._page_name_to_href(target, source)
             return f"[[{href}][{target}]]"
 
         content = _SIMPLE_LINK.sub(replace_simple, content)
@@ -139,14 +144,14 @@ class LinkResolver:
         # _HASHTAG_SIMPLE last: #word has no overlap with [[...]] syntax.
         def replace_hashtag_simple(m: re.Match) -> str:
             tag = m.group(1)
-            href = self._page_name_to_href(tag)
+            href = self._page_name_to_href(tag, source)
             return f"[[{href}][#{tag}]]"
 
         content = _HASHTAG_SIMPLE.sub(replace_hashtag_simple, content)
 
         return content, assets
 
-    def preprocess_md(self, content: str) -> tuple[str, list[str]]:
+    def preprocess_md(self, content: str, source: str = "") -> tuple[str, list[str]]:
         """Rewrite Logseq markdown content for pandoc."""
         assets: list[str] = []
 
@@ -174,7 +179,7 @@ class LinkResolver:
                 if ext in _IMAGE_EXTENSIONS:
                     return f"![{label}](assets/{basename})"
                 return f"[{label}](assets/{basename})"
-            href = self._page_name_to_href(target)
+            href = self._page_name_to_href(target, source)
             return f"[{label}]({href})"
 
         content = _MD_LABELED_LINK.sub(replace_labeled, content)
@@ -182,7 +187,7 @@ class LinkResolver:
         # Compound hashtag before simple link (same ordering logic as org).
         def replace_hashtag_compound_md(m: re.Match) -> str:
             tag = m.group(1)
-            href = self._page_name_to_href(tag)
+            href = self._page_name_to_href(tag, source)
             return f"[#{tag}]({href})"
 
         content = _HASHTAG_COMPOUND.sub(replace_hashtag_compound_md, content)
@@ -198,14 +203,14 @@ class LinkResolver:
                 if ext in _IMAGE_EXTENSIONS:
                     return f"![{basename}](assets/{basename})"
                 return f"[{basename}](assets/{basename})"
-            href = self._page_name_to_href(target)
+            href = self._page_name_to_href(target, source)
             return f"[{target}]({href})"
 
         content = _MD_SIMPLE_LINK.sub(replace_simple, content)
 
         def replace_hashtag_simple_md(m: re.Match) -> str:
             tag = m.group(1)
-            href = self._page_name_to_href(tag)
+            href = self._page_name_to_href(tag, source)
             return f"[#{tag}]({href})"
 
         content = _HASHTAG_SIMPLE.sub(replace_hashtag_simple_md, content)

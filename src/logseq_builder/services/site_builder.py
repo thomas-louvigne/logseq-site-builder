@@ -17,6 +17,7 @@ class SiteBuilder:
         self._reader = reader
         self._converter = converter
         self._writer = writer
+        self.broken_links: list[tuple[str, str]] = []
 
     def build(
         self,
@@ -29,10 +30,13 @@ class SiteBuilder:
         if not pages:
             raise ValueError("No public pages found in the Logseq directory.")
 
+        self.broken_links = []
+
         # Process regular pages
         resolver = LinkResolver(pages, config.home_slug)
         all_asset_filenames: list[str] = []
         self._process_pages(pages, resolver, config, all_asset_filenames, on_progress)
+        self.broken_links.extend(resolver.broken_links)
 
         # Process journal pages (blog)
         journal_pages: list[Page] = []
@@ -41,6 +45,7 @@ class SiteBuilder:
             if journal_pages:
                 journal_resolver = LinkResolver(pages + journal_pages, config.home_slug)
                 self._process_pages(journal_pages, journal_resolver, config, all_asset_filenames, on_progress)
+                self.broken_links.extend(journal_resolver.broken_links)
 
         home = self._find_home(pages, config.home_slug)
 
@@ -83,9 +88,9 @@ class SiteBuilder:
 
     def _process_page(self, page: Page, resolver: LinkResolver, config: SiteConfig) -> str:
         if page.format == "org":
-            preprocessed, assets = resolver.preprocess_org(page.raw_content)
+            preprocessed, assets = resolver.preprocess_org(page.raw_content, page.title)
         else:
-            preprocessed, assets = resolver.preprocess_md(page.raw_content)
+            preprocessed, assets = resolver.preprocess_md(page.raw_content, page.title)
         page.asset_filenames = assets
         html = self._converter.convert(preprocessed, page.format)
         if config.flatten_headings_from is not None:
