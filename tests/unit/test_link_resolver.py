@@ -16,6 +16,7 @@ def resolver():
         _make_page("Accueil", "accueil"),
         _make_page("Dragons"),
         _make_page("Gustave Coste", "gustave-coste"),
+        _make_page("Époque Tracogna"),
     ]
     return LinkResolver(pages, home_slug="accueil")
 
@@ -139,3 +140,19 @@ class TestBrokenLinks:
         resolver.preprocess_org("See [[Nowhere]].", source="Dragons")
         resolver.preprocess_org("See [[Elsewhere]].", source="Accueil")
         assert resolver.broken_links == [("Dragons", "Nowhere"), ("Accueil", "Elsewhere")]
+
+    def test_uppercase_variant_not_flagged(self, resolver):
+        resolver.preprocess_org("See [[GUSTAVE COSTE]].", source="Dragons")
+        assert resolver.broken_links == []
+
+    def test_dash_variant_not_flagged(self, resolver):
+        resolver.preprocess_org("See [[Gustave-Coste]].", source="Dragons")
+        assert resolver.broken_links == []
+
+    def test_accent_and_separator_variant_not_flagged(self, resolver):
+        resolver.preprocess_org("See [[Époque-Tracogna]].", source="Dragons")
+        assert resolver.broken_links == []
+
+    def test_missing_accent_variant_not_flagged(self, resolver):
+        resolver.preprocess_org("See [[epoque tracogna]].", source="Dragons")
+        assert resolver.broken_links == []

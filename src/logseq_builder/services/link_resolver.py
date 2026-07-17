@@ -54,6 +54,7 @@ _MD_SIMPLE_LINK = re.compile(r"\[\[([^\]]+)\]\]")
 class LinkResolver:
     def __init__(self, pages: list[Page], home_slug: str) -> None:
         self._slug_map = self._build_slug_map(pages)
+        self._known_slugs = frozenset(page.slug for page in pages)
         self._home_slug = home_slug
         # (source_page_title, target) pairs for links that resolve to no known page.
         self.broken_links: list[tuple[str, str]] = []
@@ -73,8 +74,15 @@ class LinkResolver:
     def _page_name_to_href(self, target: str, source: str = "") -> str:
         slug = self._slug_map.get(target.lower())
         if slug is None:
-            slug = slugify(target)
-            self.broken_links.append((source, target))
+            # Case/accents/dashes may differ from the page title (e.g. "epoque-tracogna"
+            # vs "Époque Tracogna") yet still resolve to the same page — slugify() folds
+            # accents and normalizes separators the same way page slugs were generated.
+            candidate = slugify(target)
+            if candidate in self._known_slugs:
+                slug = candidate
+            else:
+                slug = candidate
+                self.broken_links.append((source, target))
         return self._slug_to_href(slug)
 
     def preprocess_org(self, content: str, source: str = "") -> tuple[str, list[str]]:
