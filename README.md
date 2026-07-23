@@ -1,437 +1,76 @@
 # 🧱 logseq-site-builder
 
-Converts a [Logseq](https://logseq.com/) knowledge base into a static website (HTML + CSS + vanilla JS).
+Turns a [Logseq](https://logseq.com/) graph into a static website — HTML + CSS + vanilla JS, no server, no build framework.
 
-> 🤖 **Vibecoded** — This project was entirely generated through vibe coding with Claude. The source code is readable and modifiable, but the architecture and implementation choices emerged from human-AI collaboration rather than traditional design.
->
-> ⚠️ **This project is still in early beta.** Expect rough edges and breaking changes.
+> 🤖 **Vibecoded** — entirely generated through vibe coding with Claude. Readable and hackable, but still **early beta**: expect rough edges and breaking changes.
 
-## ✨ Features
+## Example
 
-- **Org & Markdown** — supports both Logseq file formats via Pandoc
-- **Selective publishing** — per-page `#+PUBLIC: true` flag or global all-public mode
-- **Wiki links** — `[[Page name]]` converted to valid HTML links
-- **Asset handling** — images embedded, other files (PDF, ZIP…) linked with `download`
-- **Themes** — built-in `default` and `dark` themes, or bring your own CSS file
-- **Blog / journals** — generates a blog index + individual pages from Logseq journals
-- **RSS feed** — RSS 2.0 `feed.xml` generated from journal entries
-- **Navigation menu** — configurable nav links via TOML
-- **Social links** — social network icons in the sidebar
-- **Custom HTML pages** — subdirectories of `pages/` containing `.html`/`.css` files are copied as-is into the output
-- **Hidden pages** — exclude files or directories from the build
-- **TOML config** — auto-generated on first run, with values pre-filled from `config.edn`
-- **Full-text search** — client-side fuzzy search powered by [Fuse.js](https://fusejs.io/), index generated at build time, no server needed
-- **Zero JS framework** — output is plain HTML + CSS + vanilla JS
+[chroniques-insoumises.com](https://chroniques-insoumises.com/) — a Logseq knowledge base built with the default theme.
 
-## 🌍 Examples
+![Screenshot of chroniques-insoumises.com](docs/screenshot.png)
 
-| Site | Source |
-|---|---|
-| [chroniques-insoumises.com](https://chroniques-insoumises.com/) | Logseq knowledge base, default theme |
+## Features
 
-## ⚙️ How it works
+- **Org & Markdown** pages, converted via Pandoc
+- **Selective publishing** — `#+PUBLIC: true` per page, an all-public mode, or hide specific paths
+- **Wiki links, images & attachments** handled automatically (`[[Page]]`, `[[../assets/file.pdf]]`…)
+- **Blog / journals** — index page + RSS feed generated from your Logseq journals
+- **Themes** — built-in `default` and `dark`, or bring your own CSS
+- **Nav menu & social links**, configurable via TOML
+- **Custom HTML/CSS pages** copied as-is (embeds, mini-apps, slide decks…)
+- **Full-text search**, client-side (Fuse.js), no server needed
+- `--check-links` to catch broken wiki links before they 404
+- `--zip` to archive the built site
 
-```
-Logseq (pages/*.org or *.md)
-        │
-        ▼
-  LogseqReader        → reads files, detects #+PUBLIC, parses config.edn
-        │
-        ▼
-  LinkResolver        → converts [[wiki links]] into valid HTML links
-        │
-        ▼
-  PandocConverter     → transforms org/markdown into HTML fragments
-        │
-        ▼
-  StaticWriter        → assembles pages via Jinja2, copies assets
-        │
-        ▼
-  Static site (index.html, pages, style.css, js/, assets/)
-```
-
-## 📦 Requirements
+## Requirements
 
 - Python 3.11+
-- [pandoc](https://pandoc.org/installing.html) installed on the system
+- [pandoc](https://pandoc.org/installing.html)
 
-```bash
-# Debian/Ubuntu
-sudo apt install pandoc
-
-# macOS
-brew install pandoc
-```
-
-## 🚀 Installation
+## Install
 
 ```bash
 git clone https://github.com/thomas-louvigne/logseq-site-builder.git
 cd logseq-site-builder
-```
-
-Create and activate a virtual environment, then install:
-
-```bash
 python -m venv .venv
-source .venv/bin/activate   # Linux/macOS
-# .venv\Scripts\activate    # Windows
+source .venv/bin/activate   # .venv\Scripts\activate on Windows
 pip install -e .
 ```
 
-> **Note:** You need to activate the virtual environment (`source .venv/bin/activate`) each time you open a new terminal before using `logseq-builder`.
-
-## 🔧 Configuration
-
-On the **first run**, the builder automatically generates a `logseq-site-builder.toml` file at the root of your Logseq project, pre-filled with values read from `logseq/config.edn`. You can then edit it freely to customise your site.
-
-To skip this behaviour, pass `--no-init-toml`.
-
-### `logseq-site-builder.toml` reference
-
-```toml
-# Place this file at the root of your Logseq project.
-# All keys are optional.
-# Priority: CLI options > this file > logseq/config.edn (auto-read).
-
-[site]
-title       = "My Logseq Site"
-author      = "First Last"
-description = "My personal knowledge base, generated from Logseq."
-base_url    = "https://example.com"
-
-# Home page slug. Auto-read from config.edn :default-home if absent.
-home_page = "home"
-
-# Publish all pages without requiring #+PUBLIC: true.
-# Auto-read from config.edn :publishing/all-pages-public? if absent.
-all_public = false
-
-# Org headings at level >= N are turned into plain paragraphs (<h3>… → <p>).
-# Remove or comment out to disable.
-flatten_headings_from = 3
-
-# Theme: "default", "dark", or a path to a custom CSS file.
-# theme = "dark"
-
-# Pages and journals directories (auto-read from config.edn if absent).
-pages_directory    = "pages"
-journals_directory = "journals"
-
-# Paths to exclude from the build (relative to the Logseq project root).
-# hidden = ["/private", "/drafts/secret.org"]
-
-# ── Blog (Logseq journals) ────────────────────────────────────────────────────
-
-# Enable the blog section built from files in the journals/ directory.
-enable_journals = false
-
-blog_title = "Blog"
-blog_slug  = "blog"
-
-# Date display format for post titles (Java/Logseq notation).
-journal_page_title_format = "dd-MM-yyyy"
-
-# Date format used in journal filenames (Java/Logseq notation).
-journal_file_name_format = "yyyy_MM_dd"
-
-# Generate a feed.xml RSS 2.0 file. Requires enable_journals = true.
-rss = false
-
-# ── Navigation menu ───────────────────────────────────────────────────────────
-
-[[menu]]
-label = "Home"
-slug  = "home"
-
-[[menu]]
-label = "About"
-slug  = "about"
-
-# ── Social links ─────────────────────────────────────────────────────────────
-
-[social_networks]
-GitHub   = "https://github.com/your-username"
-Mastodon = "https://mastodon.social/@your-handle"
-```
-
-### Priority order
-
-Settings are resolved from lowest to highest priority:
-
-1. `logseq/config.edn` — automatically read, no setup required
-2. `logseq-site-builder.toml` — project-level overrides
-3. CLI options — highest priority
-
-This means you rarely need to duplicate values already present in `config.edn`.
-
-### Keys auto-imported from `config.edn`
-
-| `config.edn` key | TOML key | Description |
-|---|---|---|
-| `:publishing/all-pages-public?` | `[site] all_public` | Publish all pages without `#+PUBLIC` |
-| `:default-home {:page "..."}` | `[site] home_page` | Home page slug |
-| `:hidden [...]` | `[site] hidden` | Paths to exclude from the build |
-| `:feature/enable-journals?` | `[site] enable_journals` | Enable blog/journal section |
-| `:pages-directory` | `[site] pages_directory` | Pages folder (default: `pages`) |
-| `:journals-directory` | `[site] journals_directory` | Journals folder (default: `journals`) |
-| `:journal/page-title-format` | `[site] journal_page_title_format` | Date display format |
-| `:journal/file-name-format` | `[site] journal_file_name_format` | Journal filename date format |
-
-## 🎨 Themes
-
-The builder ships with two built-in themes and supports custom CSS files.
-
-### Built-in themes
-
-| Name | Description |
-|---|---|
-| `default` | Light background, dark sidebar (default when no theme is set) |
-| `dark` | Fully dark interface — dark content area, dark sidebar |
-
-Set a theme in your TOML:
-
-```toml
-[site]
-theme = "dark"
-```
-
-Or via CLI:
+## Usage
 
 ```bash
-logseq-builder ~/my-logseq ~/Sites/my-site --theme dark
+logseq-builder ~/my-logseq ~/Sites/my-site
 ```
 
-### Custom theme
+On first run, a `logseq-site-builder.toml` is generated at the root of your Logseq project (pre-filled from `logseq/config.edn`). Edit it to set the title, theme, nav menu, blog, RSS, etc. — see [`logseq-site-builder.example.toml`](logseq-site-builder.example.toml) for every option, documented.
 
-Place any `.css` file in your Logseq project directory (e.g. `themes/my-theme.css`) and reference it:
-
-```toml
-[site]
-theme = "themes/my-theme.css"
-```
-
-The file replaces `style.css` in the generated site. Use the built-in themes in `src/logseq_builder/themes/` as a starting point — they expose all colours as CSS custom properties at the top, so you only need to override the variables you want to change.
-
-## 📄 Published pages
-
-By default, only pages marked `#+PUBLIC: true` are included:
-
-```org
-#+PUBLIC: true
-
-* Page content...
-```
-
-If `logseq/config.edn` contains `:publishing/all-pages-public? true`, all pages are published automatically. The `--all-public` CLI flag forces the same behaviour.
-
-### 🙈 Hiding pages
-
-Set `:hidden` in `config.edn` or `hidden` in the TOML to exclude specific files or directories (paths are relative to the Logseq project root):
-
-```toml
-[site]
-hidden = ["/private", "/drafts/secret.org"]
-```
-
-## 🏠 Home page
-
-The home page (`index.html`) is determined in this priority order:
-
-1. `--home-page` CLI option
-2. `[site] home_page` in `logseq-site-builder.toml`
-3. `:default-home` in `logseq/config.edn`
-4. Auto-detection (page named `index`, `home`, or `accueil`)
-5. First page found
-
-## 📝 Blog (journal entries)
-
-When `enable_journals = true`, the builder reads journal files from the `journals/` directory and generates a blog section.
-
-```toml
-[site]
-enable_journals = true
-blog_title      = "Blog"
-blog_slug       = "blog"
-
-# Date formats use Java/Logseq notation (auto-read from config.edn if present)
-journal_page_title_format = "dd-MM-yyyy"   # display title of each post
-journal_file_name_format  = "yyyy_MM_dd"   # journal filename pattern
-```
-
-This produces:
-- One HTML page per journal entry (e.g. `journal-2024-01-15.html`)
-- A blog index page at `blog.html` listing all entries newest-first
-- A "Blog" entry automatically added to the nav menu (if not already present)
-
-### 📡 RSS feed
-
-Enable RSS generation with the `rss` flag:
-
-```toml
-[site]
-enable_journals = true
-rss             = true
-base_url        = "https://example.com"   # required for absolute URLs in the feed
-```
-
-This generates `feed.xml` (RSS 2.0) and adds a `<link rel="alternate">` tag to every page `<head>`.
-
-## 🔗 Links and assets
-
-The builder handles Logseq-specific syntax:
-
-| Logseq syntax | Output |
-|---|---|
-| `[[Page name]]` | `<a href="page-name.html">Page name</a>` |
-| `[[page][label]]` | `<a href="page.html">label</a>` |
-| `[[../assets/image.jpg]]` | `<img src="assets/image.jpg">` + file copied |
-| `[[../assets/document.pdf]]` | `<a href="assets/document.pdf" download>document.pdf</a>` |
-| `#[[compound tag]]` | plain text (tag removed) |
-| `:PROPERTIES: ... :END:` | removed |
-
-Non-image asset links (PDF, ZIP, etc.) automatically get a `download` attribute.
-
-### Checking for broken links
-
-`[[Page name]]` links that don't match any known page still build (they link to a
-slugified filename), but that filename never gets written — a silent 404. Pass
-`--check-links` to list them in the terminal after the build, grouped by target
-with the source page(s) that reference them:
-
-```bash
-logseq-builder ~/my-logseq ~/Sites/my-site --check-links
-```
-
-```
-2 broken link(s) found (would 404):
-  [[Old Page Name]]
-    referenced in: Dragons
-  [[Typo Reference]]
-    referenced in: Accueil
-```
-
-## 🌐 Custom HTML pages
-
-Any subdirectory inside the `pages/` directory (or the directory set by `pages_directory`) that contains at least one `.html` or `.css` file is copied verbatim into the output site.
-
-This lets you embed standalone HTML applications, interactive visualisations, slide decks, or any web content that doesn't go through the Logseq → Pandoc pipeline:
-
-```
-my-logseq/
-└── pages/
-    └── my-app/          ← contains .html or .css → copied as-is
-        ├── index.html
-        ├── style.css
-        └── script.js
-```
-
-Result in the generated site:
-
-```
-output/
-└── my-app/
-    ├── index.html       ← accessible at /my-app/index.html
-    ├── style.css
-    └── script.js
-```
-
-You can then link to it from any Logseq page with a plain URL:
-
-```org
-[[/my-app/index.html][Open my app]]
-```
-
-> Subdirectories containing only non-web files (e.g. plain `.txt` or `.org`) are not copied.
-
-## 🗂️ Generated site structure
-
-```
-output/
-├── index.html          ← home page
-├── my-page.html        ← other pages (flat URL structure, no subdirectories)
-├── blog.html           ← blog index (when enable_journals = true)
-├── journal-2024-01-15.html
-├── feed.xml            ← RSS feed (when rss = true)
-├── style.css
-├── js/
-│   ├── main.js
-│   ├── fuse.min.js         ← Fuse.js fuzzy-search library
-│   └── search.js           ← generated search index
-├── my-app/             ← subdirectory from pages/ with HTML/CSS (copied as-is)
-│   └── index.html
-└── assets/             ← images and files referenced in Logseq
-    └── image.jpg
-```
-
-## 🏗️ Architecture
-
-The project follows a **ports/adapters** (hexagonal) architecture:
-
-```
-src/logseq_builder/
-├── domain/
-│   └── page.py              # Entities: Page, SiteConfig
-├── ports/
-│   └── interfaces.py        # Abstract interfaces (ABC)
-├── adapters/
-│   ├── edn_config_loader.py # Parses logseq/config.edn
-│   ├── toml_config_loader.py# Merges EDN + TOML config
-│   ├── logseq_reader.py     # Reads Logseq files, journal support
-│   ├── pandoc_converter.py  # org/md → HTML via pandoc
-│   └── static_writer.py     # Writes site output (Jinja2)
-├── services/
-│   ├── site_builder.py      # Build pipeline orchestration
-│   └── link_resolver.py     # Wiki link transformation
-└── templates/               # Jinja2 templates (base, page, blog, rss)
-```
-
-## 🧪 Tests
-
-```bash
-pip install -e ".[dev]"
-python3 -m pytest
-```
-
-## 🖥️ CLI reference
-
-```bash
-logseq-builder <logseq_dir> <output_dir> [OPTIONS]
-```
+Priority: CLI options > TOML file > `logseq/config.edn`.
 
 ### Options
 
 | Option | Description |
 |---|---|
 | `--site-title TEXT` | Site title (default: directory name) |
-| `--home-page SLUG` | Page to use as `index.html` (default: read from `config.edn`) |
-| `--all-public` | Publish all pages, ignore `#+PUBLIC: true` |
+| `--home-page SLUG` | Page to use as `index.html` |
+| `--all-public` | Publish all pages, ignore `#+PUBLIC` |
 | `--social NAME:URL` | Social link in the nav menu (repeatable) |
-| `--theme NAME_OR_PATH` | Theme name (`default`, `dark`) or path to a CSS file |
-| `--no-init-toml` | Do not generate `logseq-site-builder.toml` on first run |
-| `--check-links` | List internal links pointing to no known page (would 404) in the terminal |
-| `--zip` | Zip the built site into `<output_dir>.zip` once the build is complete |
+| `--theme NAME_OR_PATH` | `default`, `dark`, or a path to a CSS file |
+| `--check-links` | List internal links that would 404 |
+| `--zip` | Zip the built site into `<output_dir>.zip` |
+| `--no-init-toml` | Skip generating the TOML on first run |
 
-### Examples
-
-```bash
-# Minimal — home page is read from logseq/config.edn (:default-home)
-logseq-builder ~/my-logseq ~/Sites/my-site
-
-# With title and social links
-logseq-builder ~/my-logseq ~/Sites/my-site \
-  --site-title "My Wiki" \
-  --social "Mastodon:https://mastodon.social/@me" \
-  --social "GitHub:https://github.com/me"
-
-# Publish everything, no #+PUBLIC filter
-logseq-builder ~/my-logseq ~/Sites/my-site --all-public
-```
-
-### 👁️ Local preview
+### Preview locally
 
 ```bash
 cd ~/Sites/my-site
 python3 -m http.server 8080
-# Open http://localhost:8080
+```
+
+## Tests
+
+```bash
+pip install -e ".[dev]"
+python3 -m pytest
 ```
