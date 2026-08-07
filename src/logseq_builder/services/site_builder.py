@@ -1,5 +1,6 @@
 import re
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from ..domain.page import Page, SiteConfig
@@ -80,11 +81,17 @@ class SiteBuilder:
         all_assets: list[str],
         on_progress: Callable[[str], None] | None,
     ) -> None:
-        for page in pages:
-            page.html_content = self._process_page(page, resolver, config)
-            all_assets.extend(page.asset_filenames)
-            if on_progress:
-                on_progress(page.title)
+        # Each page's pandoc conversion is an independent subprocess call, so
+        # threads give a near-linear speedup (the GIL is released while waiting
+        # on the subprocess). Results are applied on the main thread, in
+        # submission order, to keep on_progress and asset ordering deterministic.
+        with ThreadPoolExecutor() as executor:
+            futures = [executor.submit(self._process_page, page, resolver, config) for page in pages]
+            for page, future in zip(pages, futures):
+                page.html_content = future.result()
+                all_assets.extend(page.asset_filenames)
+                if on_progress:
+                    on_progress(page.title)
 
     def _process_page(self, page: Page, resolver: LinkResolver, config: SiteConfig) -> str:
         if page.format == "org":
