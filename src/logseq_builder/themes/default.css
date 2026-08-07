@@ -193,6 +193,14 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   padding-left: 1.25rem;
 }
 .page-body li { margin-bottom: 0.15em; }
+
+/* Bullet threading — vertical guide line linking a parent bullet to its nested children */
+.page-body li > ul,
+.page-body li > ol {
+  margin: -0.15em 0 0 0.3rem;
+  padding-left: 0.95rem;
+  border-left: 1.5px solid var(--color-text-muted);
+}
 .page-body blockquote {
   border-left: 3px solid var(--color-accent);
   padding: 0.4rem 0.875rem;
@@ -257,9 +265,13 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 }
 
 /* ── Heading indentation (Pandoc --section-divs) ─────────── */
-.page-body section.level2 { padding-left: 1rem; }
-.page-body section.level3 { padding-left: 1rem; }
-.page-body section.level4 { padding-left: 1rem; }
+/* Bullet threading — vertical guide line linking a parent block to its nested sub-blocks */
+.page-body section.level2,
+.page-body section.level3,
+.page-body section.level4 {
+  padding-left: 1rem;
+  border-left: 1.5px solid var(--color-text-muted);
+}
 
 /* ── Footer ──────────────────────────────────────────────── */
 .site-footer {
