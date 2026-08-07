@@ -21,6 +21,7 @@ Turns a [Logseq](https://logseq.com/) graph into a static website — HTML + CSS
 - **Custom HTML/CSS pages** copied as-is (embeds, mini-apps, slide decks…)
 - **Full-text search**, client-side (Fuse.js), no server needed
 - `--check-links` to catch broken wiki links before they 404
+- `--check-assets` to list assets that no page references
 - `--zip` to archive the built site
 
 ## Requirements
@@ -58,6 +59,7 @@ Priority: CLI options > TOML file > `logseq/config.edn`.
 | `--social NAME:URL` | Social link in the nav menu (repeatable) |
 | `--theme NAME_OR_PATH` | `default`, `dark`, or a path to a CSS file |
 | `--check-links` | List internal links that would 404 |
+| `--check-assets` | List assets that no page references |
 | `--zip` | Zip the built site into `<output_dir>.zip` |
 | `--no-init-toml` | Skip generating the TOML on first run |
 

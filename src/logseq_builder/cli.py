@@ -145,6 +145,12 @@ def _resolve_theme_css(theme: str, logseq_dir: Path) -> Path | None:
     help="List internal links that point to no known page (would 404) in the terminal.",
 )
 @click.option(
+    "--check-assets",
+    is_flag=True,
+    default=False,
+    help="List files in the Logseq assets/ directory that no page references.",
+)
+@click.option(
     "--zip",
     "zip_output",
     is_flag=True,
@@ -161,6 +167,7 @@ def main(
     no_init_toml: bool,
     theme: str | None,
     check_links: bool,
+    check_assets: bool,
     zip_output: bool,
 ) -> None:
     """Build a static website from a Logseq knowledge base."""
@@ -245,6 +252,9 @@ def main(
     if check_links:
         _report_broken_links(builder.broken_links)
 
+    if check_assets:
+        _report_unused_assets(logseq_assets_dir, builder.used_assets)
+
     if zip_output:
         archive_path = shutil.make_archive(str(output_dir), "zip", root_dir=output_dir)
         click.echo(f"  Zipped to {archive_path}")
@@ -270,6 +280,23 @@ def _report_broken_links(broken_links: list[tuple[str, str]]) -> None:
         click.echo(f"  [[{target}]]")
         for source in sources:
             click.echo(f"    referenced in: {source}")
+
+
+def _report_unused_assets(logseq_assets_dir: Path, used_assets: list[str]) -> None:
+    if not logseq_assets_dir.is_dir():
+        return
+
+    used = set(used_assets)
+    on_disk = sorted(f.name for f in logseq_assets_dir.iterdir() if f.is_file())
+    unused = [name for name in on_disk if name not in used]
+
+    if not unused:
+        click.echo("\nNo unused assets found.")
+        return
+
+    click.echo(f"\n{len(unused)} unused asset(s) found (not referenced by any page):")
+    for name in unused:
+        click.echo(f"  assets/{name}")
 
 
 def _auto_detect_home(pages) -> str:  # type: ignore[type-arg]

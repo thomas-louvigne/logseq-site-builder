@@ -19,6 +19,7 @@ class SiteBuilder:
         self._converter = converter
         self._writer = writer
         self.broken_links: list[tuple[str, str]] = []
+        self.used_assets: list[str] = []
 
     def build(
         self,
@@ -64,6 +65,7 @@ class SiteBuilder:
                 self._writer.write_rss(journal_pages, config)
 
         unique_assets = list(dict.fromkeys(all_asset_filenames))
+        self.used_assets = unique_assets
         self._writer.copy_assets(unique_assets, logseq_assets_dir)
 
         pages_dir = logseq_assets_dir.parent / config.pages_directory
