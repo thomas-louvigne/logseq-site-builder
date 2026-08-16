@@ -301,10 +301,19 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 /* Bullet threading — same dot + connector geometry as nested lists, applied
    to Logseq blocks that Pandoc renders as nested heading sections instead of
    <ul>/<ol> (e.g. blocks styled as headings in Logseq). section.level1 (top-
-   level page headings) is left untouched — no dot, no indent. section.level2
-   is the threading root (dot only, no incoming line, like a top-level <li>);
+   level page headings) itself gets no dot or indent, but still carries a
+   trunk line so its level2 children stay visibly connected to each other —
+   otherwise consecutive level2 siblings would look unrelated. section.level2
+   is the threading root (dot, no incoming line, like a top-level <li>);
    level3/level4 nest one inside the previous, so the same margin/padding math
    used for `li > ul` aligns every stem under its parent's own dot. */
+.bullet-threading .page-body section.level1 {
+  position: relative;
+  background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
+  background-repeat: no-repeat;
+  background-size: 1.5px 100%;
+  background-position: 0.4rem 1.9rem;
+}
 .bullet-threading .page-body section.level2 {
   position: relative;
   padding-left: 1.25rem;
