@@ -106,6 +106,8 @@ class SiteBuilder:
         html = self._converter.convert(preprocessed, page.format)
         if config.listify_headings_from is not None:
             html = _sections_to_lists(html, config.listify_headings_from)
+        if config.bullet_threading:
+            html = _add_collapsible_tree(html)
         return _add_download_to_asset_links(html)
 
     def _find_home(self, pages: list[Page], home_slug: str) -> Page:
@@ -226,4 +228,78 @@ def _sections_to_lists(html: str, from_level: int) -> str:
     heading-section threading rules."""
     soup = BeautifulSoup(html, "html.parser")
     _sections_to_lists_in(soup, soup, from_level)
+    return str(soup)
+
+
+def _wrap_as_details(soup: BeautifulSoup, summary_nodes: list, rest_nodes: list) -> Tag:
+    details = soup.new_tag("details")
+    details["open"] = ""
+    summary = soup.new_tag("summary")
+    for node in summary_nodes:
+        summary.append(node)
+    details.append(summary)
+    for node in rest_nodes:
+        details.append(node)
+    return details
+
+
+def _make_collapsible(soup: BeautifulSoup, node: object) -> None:
+    """Wrap any <li> or heading <section> that has nested content into a
+    <details><summary> so the tree view can fold/unfold that branch. Leaves
+    (no nested content) are left untouched — nothing to collapse."""
+    if not isinstance(node, Tag):
+        return
+    if node.name == "li":
+        _make_collapsible_li(soup, node)
+    elif _section_level(node) is not None:
+        _make_collapsible_section(soup, node)
+    else:
+        for child in list(node.contents):
+            _make_collapsible(soup, child)
+
+
+def _make_collapsible_li(soup: BeautifulSoup, li: Tag) -> None:
+    children = list(li.contents)
+    split = next(
+        (i for i, c in enumerate(children) if isinstance(c, Tag) and c.name in ("ul", "ol")),
+        None,
+    )
+    if split is None:
+        for child in children:
+            _make_collapsible(soup, child)
+        return
+    summary_nodes = [c.extract() for c in children[:split]]
+    rest_nodes = [c.extract() for c in children[split:]]
+    for node in rest_nodes:
+        _make_collapsible(soup, node)
+    li.append(_wrap_as_details(soup, summary_nodes, rest_nodes))
+
+
+def _make_collapsible_section(soup: BeautifulSoup, section: Tag) -> None:
+    children = list(section.contents)
+    heading_idx = next(
+        (i for i, c in enumerate(children) if isinstance(c, Tag) and c.name in _HEADING_TAGS),
+        None,
+    )
+    if heading_idx is None:
+        for child in children:
+            _make_collapsible(soup, child)
+        return
+    rest = children[heading_idx + 1 :]
+    has_content = any(isinstance(c, Tag) or (isinstance(c, str) and c.strip()) for c in rest)
+    if not has_content:
+        return
+    heading = children[heading_idx].extract()
+    rest_nodes = [c.extract() for c in rest]
+    for node in rest_nodes:
+        _make_collapsible(soup, node)
+    section.append(_wrap_as_details(soup, [heading], rest_nodes))
+
+
+def _add_collapsible_tree(html: str) -> str:
+    """Wrap every branch of the outline (list items and heading sections that
+    have nested content) in a native <details>/<summary>, giving the tree-view
+    bullet threading a click-to-collapse button on top of its guide lines."""
+    soup = BeautifulSoup(html, "html.parser")
+    _make_collapsible(soup, soup)
     return str(soup)

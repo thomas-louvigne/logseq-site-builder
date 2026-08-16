@@ -328,79 +328,220 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 }
 .page-body li { margin-bottom: 0.15em; }
 
-/* Bullet threading — vertical + horizontal guide lines connecting a parent
-   bullet to its nested children, like an outliner. Feature-flagged: toggled
-   by `bullet_threading` in logseq-site-builder.toml, which adds/removes the
-   .bullet-threading class on <body>. */
+/* Bullet threading — tree view. Guide lines + circular expand/collapse
+   markers connecting a parent bullet to its nested children, styled after
+   https://iamkate.com/code/tree-views/ (colors swapped for the theme's own
+   palette). Feature-flagged: toggled by `bullet_threading` in
+   logseq-site-builder.toml, which adds/removes the .bullet-threading class
+   on <body> and switches on the <details>/<summary> wrapping that makes
+   each branch foldable.
+
+   Every guide line lives on the item it belongs to (border-left on the <li>
+   or <section>, sized by that element's own auto height) rather than on a
+   fixed-height pseudo-element spanning a container — so trunk lines always
+   match wrapped, multi-line headings/blocks with no manual height math.
+   The same border/marker rules apply uniformly whether a branch is a plain
+   nested list, a list starting directly inside a heading section, or a
+   nested heading section — anything that sits directly inside a <details>
+   is "nested" and gets a trunk; anything at the top of .page-body (or
+   directly inside a level1 heading) is a root and doesn't. */
+.bullet-threading .page-body {
+  --tree-spacing: 1.25rem;
+  --tree-radius: 0.3125rem;
+  --tree-offset: 2px; /* nudges the marker + elbow down to sit centered on the text */
+  --tree-line: var(--color-text-muted);
+  --tree-line-hover: var(--color-accent);
+  --tree-collapsed: var(--color-accent);
+  --tree-expand-icon: url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2732%27%20height=%2716%27%3E%3Cg%20fill=%27%23fff%27%3E%3Cpath%20d=%27m4%207.2h3.2v-3.2h1.6v3.2h3.2v1.6h-3.2v3.2h-1.6v-3.2h-3.2z%27/%3E%3Cpath%20d=%27m20%207.2h8v1.6h-8z%27/%3E%3C/g%3E%3C/svg%3E");
+}
 .bullet-threading .page-body ul,
 .bullet-threading .page-body ol {
   list-style: none;
 }
-.bullet-threading .page-body li {
+.bullet-threading .page-body li,
+.bullet-threading .page-body section.level1,
+.bullet-threading .page-body section.level2,
+.bullet-threading .page-body section.level3,
+.bullet-threading .page-body section.level4 {
   position: relative;
+  padding-left: calc(2 * var(--tree-spacing) - var(--tree-radius) - 2px);
 }
-.bullet-threading .page-body ul > li::before,
-.bullet-threading .page-body ol > li::before {
+/* A border-left only spans its own element's box — any child's margin that
+   collapses through the bottom edge (a trailing <p>, or a heading's own
+   margin-top collapsing through its section) opens a gap in the trunk line
+   right at that boundary. Padding never collapses, so redirecting the
+   spacing that used to live in margins into padding here keeps every trunk
+   segment touching the next, with no visible break. */
+.bullet-threading .page-body li {
+  margin-bottom: 0;
+  padding-bottom: 0.15em;
+}
+.bullet-threading .page-body section.level1,
+.bullet-threading .page-body section.level2,
+.bullet-threading .page-body section.level3,
+.bullet-threading .page-body section.level4 {
+  padding-bottom: 0.15em;
+}
+.bullet-threading .page-body section.level1 > h1,
+.bullet-threading .page-body section.level1 > details > summary > h1,
+.bullet-threading .page-body section.level2 > h2,
+.bullet-threading .page-body section.level2 > details > summary > h2,
+.bullet-threading .page-body section.level3 > h3,
+.bullet-threading .page-body section.level3 > details > summary > h3,
+.bullet-threading .page-body section.level4 > h4,
+.bullet-threading .page-body section.level4 > details > summary > h4 {
+  margin: 0;
+}
+.bullet-threading .page-body details > summary {
+  display: block;
+  cursor: pointer;
+}
+.bullet-threading .page-body details > summary::-webkit-details-marker {
+  display: none;
+}
+.bullet-threading .page-body details > summary::marker {
   content: "";
-  position: absolute;
-  top: 0.62em;
-  left: -1.1rem;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-text-muted);
-  transform: translateY(-50%);
 }
-.bullet-threading .page-body li > ul,
-.bullet-threading .page-body li > ol {
-  margin: -0.15em 0 0 -0.85rem;
-  padding-left: 2.1rem;
-  border-left: 2px solid var(--color-text-muted);
+.bullet-threading .page-body details > summary:focus {
+  outline: none;
 }
-.bullet-threading .page-body li > ul > li::after,
-.bullet-threading .page-body li > ol > li::after {
-  content: "";
-  position: absolute;
-  top: 0.62em;
-  left: -2.1rem;
-  width: calc(1.25rem + 2px);
-  height: 2px;
-  background: var(--color-text-muted);
-  transform: translateY(-50%);
+.bullet-threading .page-body details > summary:focus-visible {
+  outline: 1px dotted var(--tree-line);
 }
-/* Bullet threading — connects a list that starts directly inside a heading
-   section (not nested inside another <li>) to that section's own trunk/dot,
-   e.g. a Logseq block styled as a heading with plain bulleted children right
-   underneath it. Mirrors the `li > ul` nesting math one level down. */
-.bullet-threading .page-body section.level1 > ul,
-.bullet-threading .page-body section.level1 > ol {
+/* Only the page's own outermost list is a "root" — no incoming trunk to
+   compensate for, so no pullback. A level1 heading is itself the root of
+   its own branch (like a top-level <li>), not a container, so its children
+   use the exact same nested formula as everything else below. */
+.bullet-threading .page-body > ul,
+.bullet-threading .page-body > ol {
   padding-left: 1.25rem;
-  border-left: 2px solid var(--color-text-muted);
 }
-.bullet-threading .page-body section.level2 > ul,
-.bullet-threading .page-body section.level2 > ol,
-.bullet-threading .page-body section.level3 > ul,
-.bullet-threading .page-body section.level3 > ol,
-.bullet-threading .page-body section.level4 > ul,
-.bullet-threading .page-body section.level4 > ol {
-  margin-left: -0.85rem;
-  padding-left: 2.1rem;
-  border-left: 2px solid var(--color-text-muted);
+/* Nested lists pull back (and drop their own padding) so their children's
+   dots realign under the parent's dot — same math as the old `li > ul`
+   nesting formula, whether the parent is a <li> or a heading <section>. */
+.bullet-threading .page-body li > details > ul,
+.bullet-threading .page-body li > details > ol,
+.bullet-threading .page-body section.level1 > details > ul,
+.bullet-threading .page-body section.level1 > details > ol,
+.bullet-threading .page-body section.level2 > details > ul,
+.bullet-threading .page-body section.level2 > details > ol,
+.bullet-threading .page-body section.level3 > details > ul,
+.bullet-threading .page-body section.level3 > details > ol,
+.bullet-threading .page-body section.level4 > details > ul,
+.bullet-threading .page-body section.level4 > details > ol {
+  margin-left: calc(var(--tree-radius) - var(--tree-spacing));
+  padding-left: 0;
 }
-.bullet-threading .page-body section.level2 > ul > li::after,
-.bullet-threading .page-body section.level2 > ol > li::after,
-.bullet-threading .page-body section.level3 > ul > li::after,
-.bullet-threading .page-body section.level3 > ol > li::after,
-.bullet-threading .page-body section.level4 > ul > li::after,
-.bullet-threading .page-body section.level4 > ol > li::after {
+/* Nested heading sections only pull back (never touch padding-left — that
+   stays the item's own universal marker gutter, set above; it lives in the
+   same <details> as this node's own <summary>, so zeroing it here would
+   collapse THIS node's own text gutter, not just its children's). */
+.bullet-threading .page-body section.level1 > details > section.level2,
+.bullet-threading .page-body section.level2 > details > section.level3,
+.bullet-threading .page-body section.level3 > details > section.level4 {
+  margin-left: calc(var(--tree-radius) - var(--tree-spacing));
+}
+/* Trunk + elbow: any <li> or <section> sitting directly inside a <details>
+   is a nested branch and gets a line up to its parent's trunk. Covers plain
+   nested lists, nested heading sections, and a list that starts directly
+   inside a heading section, all in one rule. */
+.bullet-threading .page-body details > ul > li,
+.bullet-threading .page-body details > ol > li,
+.bullet-threading .page-body details > section {
+  border-left: 2px solid var(--tree-line);
+}
+.bullet-threading .page-body details > ul > li:last-child,
+.bullet-threading .page-body details > ol > li:last-child,
+.bullet-threading .page-body details > section:last-child {
+  border-color: transparent;
+}
+.bullet-threading .page-body details > ul > li::before,
+.bullet-threading .page-body details > ol > li::before,
+.bullet-threading .page-body details > section::before {
   content: "";
+  display: block;
   position: absolute;
-  top: 0.62em;
-  left: -2.1rem;
-  width: calc(1.25rem + 2px);
-  height: 2px;
-  background: var(--color-text-muted);
-  transform: translateY(-50%);
+  top: calc(var(--tree-spacing) / -2);
+  left: -2px;
+  width: calc(var(--tree-spacing) + 2px);
+  height: calc(var(--tree-spacing) + 1px + var(--tree-offset));
+  border: solid var(--tree-line);
+  border-width: 0 0 2px 2px;
+}
+/* Marker: a plain dot on leaves, a clickable +/- button on branches. Both
+   share the same position so the button (bigger, opaque, z-index above)
+   simply covers the dot when a node has one. */
+.bullet-threading .page-body li::after,
+.bullet-threading .page-body section.level1::after,
+.bullet-threading .page-body section.level2::after,
+.bullet-threading .page-body section.level3::after,
+.bullet-threading .page-body section.level4::after,
+.bullet-threading .page-body li > details > summary::before,
+.bullet-threading .page-body section.level1 > details > summary::before,
+.bullet-threading .page-body section.level2 > details > summary::before,
+.bullet-threading .page-body section.level3 > details > summary::before,
+.bullet-threading .page-body section.level4 > details > summary::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: calc(var(--tree-spacing) / 2 - var(--tree-radius) + var(--tree-offset));
+  left: calc(var(--tree-spacing) - var(--tree-radius) - 1px);
+  width: calc(2 * var(--tree-radius));
+  height: calc(2 * var(--tree-radius));
+  border-radius: 50%;
+  background: var(--tree-line);
+}
+/* level1 headings are bigger (larger line-height) than everything else in
+   the tree, so the same offset that centers a level2/li marker sits a
+   couple pixels high against an h1's taller first line — nudge it further. */
+.bullet-threading .page-body section.level1::after,
+.bullet-threading .page-body section.level1 > details > summary::before {
+  top: calc(var(--tree-spacing) / 2 - var(--tree-radius) + var(--tree-offset) + 2px);
+}
+.bullet-threading .page-body li > details > summary::before,
+.bullet-threading .page-body section.level1 > details > summary::before,
+.bullet-threading .page-body section.level2 > details > summary::before,
+.bullet-threading .page-body section.level3 > details > summary::before,
+.bullet-threading .page-body section.level4 > details > summary::before {
+  z-index: 1;
+  background-image: var(--tree-expand-icon);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+}
+.bullet-threading .page-body li > details[open] > summary::before,
+.bullet-threading .page-body section.level1 > details[open] > summary::before,
+.bullet-threading .page-body section.level2 > details[open] > summary::before,
+.bullet-threading .page-body section.level3 > details[open] > summary::before,
+.bullet-threading .page-body section.level4 > details[open] > summary::before {
+  background-position: -1rem 0;
+}
+/* A collapsed branch hides content, so its button gets a colored marker —
+   otherwise a folded list looks identical to an empty leaf from a glance. */
+.bullet-threading .page-body li > details:not([open]) > summary::before,
+.bullet-threading .page-body section.level1 > details:not([open]) > summary::before,
+.bullet-threading .page-body section.level2 > details:not([open]) > summary::before,
+.bullet-threading .page-body section.level3 > details:not([open]) > summary::before,
+.bullet-threading .page-body section.level4 > details:not([open]) > summary::before {
+  background-color: var(--tree-collapsed);
+}
+/* Hover a branch to highlight the guide lines that belong to it. :hover
+   bubbles to every ancestor <li>/<section>, so hovering a deep item lights
+   up the whole trunk path down to it, not just its own segment. */
+.bullet-threading .page-body li:hover,
+.bullet-threading .page-body section:hover {
+  border-left-color: var(--tree-line-hover);
+}
+.bullet-threading .page-body li:hover::before,
+.bullet-threading .page-body section:hover::before {
+  border-color: var(--tree-line-hover);
+}
+.bullet-threading .page-body li:hover::after,
+.bullet-threading .page-body section:hover::after {
+  background-color: var(--tree-line-hover);
+}
+.bullet-threading .page-body li:hover > details > summary::before,
+.bullet-threading .page-body section:hover > details > summary::before {
+  background-color: var(--tree-line-hover);
 }
 .page-body blockquote {
   border: 1px solid var(--color-accent-hover);
@@ -465,76 +606,6 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   border: none;
   border-top: 1px solid var(--color-border);
   margin: 1.5em 0;
-}
-
-/* ── Heading indentation (Pandoc --section-divs) ─────────── */
-/* Bullet threading — same dot + connector geometry as nested lists, applied
-   to Logseq blocks that Pandoc renders as nested heading sections instead of
-   <ul>/<ol> (e.g. blocks styled as headings in Logseq). section.level1 (top-
-   level page headings) itself gets no dot or indent, but still carries a
-   trunk line so its level2 children stay visibly connected to each other —
-   otherwise consecutive level2 siblings would look unrelated. section.level2
-   is the threading root (dot, no incoming line, like a top-level <li>);
-   level3/level4 nest one inside the previous, so the same margin/padding math
-   used for `li > ul` aligns every stem under its parent's own dot. */
-.bullet-threading .page-body section.level1 {
-  position: relative;
-  background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
-  background-repeat: no-repeat;
-  background-size: 2px 100%;
-  background-position: 0.4rem 1.9rem;
-}
-.bullet-threading .page-body section.level2 {
-  position: relative;
-  padding-left: 1.25rem;
-  background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
-  background-repeat: no-repeat;
-  background-size: 2px 100%;
-  background-position: 0.4rem 0.62em;
-}
-.bullet-threading .page-body section.level2::before {
-  content: "";
-  position: absolute;
-  top: 0.62em;
-  left: 0.15rem;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-text-muted);
-  transform: translateY(-50%);
-}
-.bullet-threading .page-body section.level3,
-.bullet-threading .page-body section.level4 {
-  position: relative;
-  margin-left: -0.85rem;
-  padding-left: 2.1rem;
-  background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
-  background-repeat: no-repeat;
-  background-size: 2px 100%;
-  background-position: 1.25rem 0.62em;
-}
-.bullet-threading .page-body section.level3::before,
-.bullet-threading .page-body section.level4::before {
-  content: "";
-  position: absolute;
-  top: 0.62em;
-  left: 1rem;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-text-muted);
-  transform: translateY(-50%);
-}
-.bullet-threading .page-body section.level2 > section.level3::after,
-.bullet-threading .page-body section.level3 > section.level4::after {
-  content: "";
-  position: absolute;
-  top: 0.62em;
-  left: 0;
-  width: calc(1.25rem + 2px);
-  height: 2px;
-  background: var(--color-text-muted);
-  transform: translateY(-50%);
 }
 
 /* ── Footer ──────────────────────────────────────────────── */

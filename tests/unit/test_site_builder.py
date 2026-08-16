@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from logseq_builder.services.site_builder import _sections_to_lists
+from logseq_builder.services.site_builder import _add_collapsible_tree, _sections_to_lists
 
 
 class TestSectionsToLists:
@@ -76,3 +76,71 @@ class TestSectionsToLists:
         result = _sections_to_lists(html, 3)
         assert "<p>Just a paragraph.</p>" in result
         assert "<ul>" not in result
+
+
+class TestAddCollapsibleTree:
+    def test_leaf_li_is_untouched(self):
+        html = "<ul><li>Leaf</li></ul>"
+        result = _add_collapsible_tree(html)
+        assert "<details>" not in result
+        assert "<li>Leaf</li>" in result
+
+    def test_li_with_nested_list_becomes_details(self):
+        html = "<ul><li><p>Parent</p><ul><li>Child</li></ul></li></ul>"
+        result = _add_collapsible_tree(html)
+        soup = BeautifulSoup(result, "html.parser")
+        li = soup.find("li")
+        details = li.find("details", recursive=False)
+        assert details is not None
+        assert details["open"] == ""
+        summary = details.find("summary")
+        assert summary.find("p").get_text() == "Parent"
+        assert details.find("ul").find("li").get_text() == "Child"
+
+    def test_bare_text_before_nested_list_goes_in_summary(self):
+        html = "<ul><li>Parent<ul><li>Child</li></ul></li></ul>"
+        result = _add_collapsible_tree(html)
+        soup = BeautifulSoup(result, "html.parser")
+        summary = soup.find("summary")
+        assert summary.get_text() == "Parent"
+
+    def test_leaf_section_is_untouched(self):
+        html = '<section class="level1" id="a"><h1>A</h1></section>'
+        result = _add_collapsible_tree(html)
+        assert "<details>" not in result
+        assert "<h1>A</h1>" in result
+
+    def test_section_with_nested_section_becomes_details(self):
+        html = (
+            '<section class="level1" id="a"><h1>A</h1>'
+            '<section class="level2" id="b"><h2>B</h2></section>'
+            "</section>"
+        )
+        result = _add_collapsible_tree(html)
+        soup = BeautifulSoup(result, "html.parser")
+        outer = soup.find("section", id="a")
+        details = outer.find("details", recursive=False)
+        assert details is not None
+        assert details.find("summary").find("h1").get_text() == "A"
+        assert details.find("section", id="b") is not None
+
+    def test_ids_are_preserved_on_the_original_element(self):
+        html = '<ul><li id="x"><p>Parent</p><ul><li id="y">Child</li></ul></li></ul>'
+        result = _add_collapsible_tree(html)
+        soup = BeautifulSoup(result, "html.parser")
+        assert soup.find("li", id="x") is not None
+        assert soup.find("li", id="y") is not None
+
+    def test_combines_with_listified_headings(self):
+        html = (
+            '<section class="level3" id="c"><h3>Parent</h3>'
+            '<section class="level4" id="d"><h4>Child</h4></section>'
+            "</section>"
+        )
+        listified = _sections_to_lists(html, 3)
+        result = _add_collapsible_tree(listified)
+        soup = BeautifulSoup(result, "html.parser")
+        parent_li = soup.find("li", id="c")
+        details = parent_li.find("details", recursive=False)
+        assert details is not None
+        assert details.find("li", id="d") is not None

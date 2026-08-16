@@ -42,9 +42,10 @@ journals_directory = "journals"
 # Omit or leave commented out to use the built-in default theme.
 # theme = "dark"
 
-# Vertical + horizontal guide lines connecting nested bullets to their parent,
-# like an outliner (inspired by logseq-plugin-bullet-threading). Applies to
-# all built-in themes. Set to false to fall back to plain nested lists.
+# Tree view: guide lines connecting nested bullets/headings to their parent,
+# with a click-to-collapse button on every branch (style inspired by
+# https://iamkate.com/code/tree-views/). Applies to all built-in themes.
+# Set to false to fall back to plain nested lists with no lines or folding.
 bullet_threading = true
 
 # ── Blog (Logseq journals) ───────────────────────────────────────────────────
