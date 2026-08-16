@@ -234,6 +234,40 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   background: var(--color-text-muted);
   transform: translateY(-50%);
 }
+/* Bullet threading — connects a list that starts directly inside a heading
+   section (not nested inside another <li>) to that section's own trunk/dot,
+   e.g. a Logseq block styled as a heading with plain bulleted children right
+   underneath it. Mirrors the `li > ul` nesting math one level down. */
+.bullet-threading .page-body section.level1 > ul,
+.bullet-threading .page-body section.level1 > ol {
+  padding-left: 1.25rem;
+  border-left: 2px solid var(--color-text-muted);
+}
+.bullet-threading .page-body section.level2 > ul,
+.bullet-threading .page-body section.level2 > ol,
+.bullet-threading .page-body section.level3 > ul,
+.bullet-threading .page-body section.level3 > ol,
+.bullet-threading .page-body section.level4 > ul,
+.bullet-threading .page-body section.level4 > ol {
+  margin-left: -0.85rem;
+  padding-left: 2.1rem;
+  border-left: 2px solid var(--color-text-muted);
+}
+.bullet-threading .page-body section.level2 > ul > li::after,
+.bullet-threading .page-body section.level2 > ol > li::after,
+.bullet-threading .page-body section.level3 > ul > li::after,
+.bullet-threading .page-body section.level3 > ol > li::after,
+.bullet-threading .page-body section.level4 > ul > li::after,
+.bullet-threading .page-body section.level4 > ol > li::after {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  left: -2.1rem;
+  width: calc(1.25rem + 2px);
+  height: 2px;
+  background: var(--color-text-muted);
+  transform: translateY(-50%);
+}
 .page-body blockquote {
   border-left: 3px solid var(--color-accent);
   padding: 0.4rem 0.875rem;
