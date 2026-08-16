@@ -307,6 +307,10 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 .bullet-threading .page-body section.level1 {
   position: relative;
   padding-left: 1.25rem;
+  background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
+  background-repeat: no-repeat;
+  background-size: 1.5px 100%;
+  background-position: 0.4rem 0.62em;
 }
 .bullet-threading .page-body section.level1::before {
   content: "";
@@ -325,7 +329,10 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   position: relative;
   margin-left: -0.85rem;
   padding-left: 2.1rem;
-  border-left: 1.5px solid var(--color-text-muted);
+  background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
+  background-repeat: no-repeat;
+  background-size: 1.5px 100%;
+  background-position: 1.25rem 0.62em;
 }
 .bullet-threading .page-body section.level2::before,
 .bullet-threading .page-body section.level3::before,
