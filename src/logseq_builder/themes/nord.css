@@ -476,47 +476,21 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
    otherwise consecutive level2 siblings would look unrelated. section.level2
    is the threading root (dot, no incoming line, like a top-level <li>);
    level3/level4 nest one inside the previous, so the same margin/padding math
-   used for `li > ul` aligns every stem under its parent's own dot.
-
-   Each level's trunk line (the part that reaches down to its own children)
-   is anchored to its own heading with `top: 100%`, not a fixed offset from
-   the section — a fixed offset only clears a single line, so a heading that
-   wraps to 2+ lines would have the trunk start partway through its own text.
-   `overflow: hidden` on the section clips the (deliberately oversized) trunk
-   to the section's real height, since percentage height doesn't apply to an
-   absolutely positioned element anchored to an auto-height heading. */
+   used for `li > ul` aligns every stem under its parent's own dot. */
 .bullet-threading .page-body section.level1 {
   position: relative;
-  overflow: hidden;
-}
-.bullet-threading .page-body section.level1 > h1 {
-  position: relative;
-}
-.bullet-threading .page-body section.level1 > h1::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 0.4rem;
-  width: 2px;
-  height: 100000px;
-  background: var(--color-text-muted);
+  background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
+  background-repeat: no-repeat;
+  background-size: 2px 100%;
+  background-position: 0.4rem 1.9rem;
 }
 .bullet-threading .page-body section.level2 {
   position: relative;
   padding-left: 1.25rem;
-  overflow: hidden;
-}
-.bullet-threading .page-body section.level2 > h2 {
-  position: relative;
-}
-.bullet-threading .page-body section.level2 > h2::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: -0.85rem;
-  width: 2px;
-  height: 100000px;
-  background: var(--color-text-muted);
+  background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
+  background-repeat: no-repeat;
+  background-size: 2px 100%;
+  background-position: 0.4rem 0.62em;
 }
 .bullet-threading .page-body section.level2::before {
   content: "";
@@ -534,21 +508,10 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   position: relative;
   margin-left: -0.85rem;
   padding-left: 2.1rem;
-  overflow: hidden;
-}
-.bullet-threading .page-body section.level3 > h3,
-.bullet-threading .page-body section.level4 > h4 {
-  position: relative;
-}
-.bullet-threading .page-body section.level3 > h3::after,
-.bullet-threading .page-body section.level4 > h4::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: -0.85rem;
-  width: 2px;
-  height: 100000px;
-  background: var(--color-text-muted);
+  background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
+  background-repeat: no-repeat;
+  background-size: 2px 100%;
+  background-position: 1.25rem 0.62em;
 }
 .bullet-threading .page-body section.level3::before,
 .bullet-threading .page-body section.level4::before {
