@@ -15,5 +15,5 @@ class PandocConverter(ContentConverter):
             content,
             "html",
             format=pandoc_fmt,
-            extra_args=["--no-highlight", "--section-divs"],
+            extra_args=["--syntax-highlighting=none", "--section-divs"],
         )

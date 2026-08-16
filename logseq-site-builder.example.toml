@@ -4,6 +4,9 @@
 # Priority: CLI options > this file > logseq/config.edn (auto-read).
 
 [site]
+
+# ── Général ────────────────────────────────────────────────────────────────────
+
 title       = "My Logseq Site"
 author      = "First Last"
 description = "My personal knowledge base, generated from Logseq."
@@ -21,12 +24,6 @@ all_public = false
 # Remove or comment out to disable.
 flatten_headings_from = 3
 
-# Theme to apply to the generated site.
-# - Built-in themes: "default", "dark"  (ship with logseq-site-builder)
-# - Custom CSS file: path relative to this Logseq project directory, e.g. "themes/my-theme.css"
-# Omit or leave commented out to use the built-in default theme.
-# theme = "dark"
-
 # Pages and journals directories (auto-read from config.edn if absent).
 pages_directory    = "pages"
 journals_directory = "journals"
@@ -35,7 +32,20 @@ journals_directory = "journals"
 # Auto-read from config.edn :hidden if absent.
 # hidden = ["/private", "/drafts/secret.org"]
 
-# ── Blog (Logseq journals) ────────────────────────────────────────────────────
+# ── Template ───────────────────────────────────────────────────────────────────
+
+# Theme to apply to the generated site.
+# - Built-in themes: "default", "dark", "nord"  (ship with logseq-site-builder)
+# - Custom CSS file: path relative to this Logseq project directory, e.g. "themes/my-theme.css"
+# Omit or leave commented out to use the built-in default theme.
+# theme = "dark"
+
+# Vertical + horizontal guide lines connecting nested bullets to their parent,
+# like an outliner (inspired by logseq-plugin-bullet-threading). Applies to
+# all built-in themes. Set to false to fall back to plain nested lists.
+bullet_threading = true
+
+# ── Blog (Logseq journals) ───────────────────────────────────────────────────
 
 # Enable the blog section built from files in the journals/ directory.
 # Auto-read from config.edn :feature/enable-journals? if absent.
@@ -79,9 +89,15 @@ slug  = "projects"
 label = "About"
 slug  = "about"
 
-# ── Social links ─────────────────────────────────────────────────────────────
-# Displayed in the navigation sidebar.
+# Social links, displayed below the nav menu in the sidebar. The key picks the
+# icon (case-insensitive) — recognised names: GitHub, X (or Twitter), Mastodon,
+# LinkedIn, Instagram, Facebook, Discord, YouTube, Bluesky, RSS. Unrecognised
+# names get a generic link icon, so any other platform still works, just
+# without a matching logo.
 
 [social_networks]
 GitHub   = "https://github.com/your-username"
 Mastodon = "https://mastodon.social/@your-handle"
+X        = "https://x.com/your-handle"
+Discord  = "https://discord.gg/your-invite"
+Facebook = "https://facebook.com/your-page"

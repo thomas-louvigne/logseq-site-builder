@@ -194,12 +194,42 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 }
 .page-body li { margin-bottom: 0.15em; }
 
-/* Bullet threading — vertical guide line linking a parent bullet to its nested children */
-.page-body li > ul,
-.page-body li > ol {
+/* Bullet threading — vertical + horizontal guide lines connecting a parent
+   bullet to its nested children, like an outliner. Feature-flagged: toggled
+   by `bullet_threading` in logseq-site-builder.toml, which adds/removes the
+   .bullet-threading class on <body>. */
+.bullet-threading .page-body ul {
+  list-style: none;
+}
+.bullet-threading .page-body li {
+  position: relative;
+}
+.bullet-threading .page-body ul > li::before {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  left: -0.85rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  transform: translateY(-50%);
+}
+.bullet-threading .page-body li > ul,
+.bullet-threading .page-body li > ol {
   margin: -0.15em 0 0 0.3rem;
   padding-left: 0.95rem;
   border-left: 1.5px solid var(--color-text-muted);
+}
+.bullet-threading .page-body li > ul > li::after {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  left: -0.95rem;
+  width: 0.65rem;
+  height: 1.5px;
+  background: var(--color-text-muted);
+  transform: translateY(-50%);
 }
 .page-body blockquote {
   border-left: 3px solid var(--color-accent);
@@ -266,9 +296,9 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 
 /* ── Heading indentation (Pandoc --section-divs) ─────────── */
 /* Bullet threading — vertical guide line linking a parent block to its nested sub-blocks */
-.page-body section.level2,
-.page-body section.level3,
-.page-body section.level4 {
+.bullet-threading .page-body section.level2,
+.bullet-threading .page-body section.level3,
+.bullet-threading .page-body section.level4 {
   padding-left: 1rem;
   border-left: 1.5px solid var(--color-text-muted);
 }

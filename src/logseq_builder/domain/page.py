@@ -44,3 +44,4 @@ class SiteConfig:
     blog_slug: str = "blog"
     rss: bool = False
     lang: str = "en"
+    bullet_threading: bool = True

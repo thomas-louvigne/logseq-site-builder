@@ -33,7 +33,7 @@
   <link rel="alternate" type="application/rss+xml" title="{{ config.blog_title }} — {{ config.title }}" href="feed.xml">
   {% endif %}
 </head>
-<body>
+<body class="{{ 'bullet-threading' if config.bullet_threading }}">
   {% include 'partials/header.html' %}
   <div class="layout">
     {% include 'partials/menu.html' %}

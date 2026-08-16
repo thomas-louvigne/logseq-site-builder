@@ -48,6 +48,7 @@ def _build_site_config(
     blog_title: str = site_section.get("blog_title", "Blog")
     blog_slug: str = site_section.get("blog_slug", "blog")
     rss: bool = site_section.get("rss", False)
+    bullet_threading: bool = site_section.get("bullet_threading", True)
 
     toml_home = site_section.get("home_page")
     raw_home = home_page or toml_home
@@ -84,6 +85,7 @@ def _build_site_config(
         blog_title=blog_title,
         blog_slug=blog_slug,
         rss=rss,
+        bullet_threading=bullet_threading,
     )
 
 
