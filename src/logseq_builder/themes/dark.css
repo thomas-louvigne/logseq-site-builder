@@ -298,12 +298,59 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 }
 
 /* ── Heading indentation (Pandoc --section-divs) ─────────── */
-/* Bullet threading — vertical guide line linking a parent block to its nested sub-blocks */
+/* Bullet threading — same dot + connector geometry as nested lists, applied
+   to Logseq blocks that Pandoc renders as nested heading sections instead of
+   <ul>/<ol> (e.g. blocks styled as headings in Logseq). section.level1 is the
+   root (dot only, no incoming line, like a top-level <li>); each deeper level
+   nests one inside the previous, so the same margin/padding math used for
+   `li > ul` aligns every stem under its parent's own dot. */
+.bullet-threading .page-body section.level1 {
+  position: relative;
+  padding-left: 1.25rem;
+}
+.bullet-threading .page-body section.level1::before {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  left: 0.4rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  transform: translateY(-50%);
+}
 .bullet-threading .page-body section.level2,
 .bullet-threading .page-body section.level3,
 .bullet-threading .page-body section.level4 {
-  padding-left: 1rem;
+  position: relative;
+  margin-left: -0.85rem;
+  padding-left: 2.1rem;
   border-left: 1.5px solid var(--color-text-muted);
+}
+.bullet-threading .page-body section.level2::before,
+.bullet-threading .page-body section.level3::before,
+.bullet-threading .page-body section.level4::before {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  left: 1.25rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  transform: translateY(-50%);
+}
+.bullet-threading .page-body section.level1 > section.level2::after,
+.bullet-threading .page-body section.level2 > section.level3::after,
+.bullet-threading .page-body section.level3 > section.level4::after {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+  width: calc(1.25rem + 2px);
+  height: 1.5px;
+  background: var(--color-text-muted);
+  transform: translateY(-50%);
 }
 
 /* ── Footer ──────────────────────────────────────────────── */
