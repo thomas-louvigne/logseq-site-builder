@@ -210,9 +210,9 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   content: "";
   position: absolute;
   top: 0.62em;
-  left: -0.85rem;
-  width: 5px;
-  height: 5px;
+  left: -1.1rem;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--color-text-muted);
   transform: translateY(-50%);
@@ -221,7 +221,7 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 .bullet-threading .page-body li > ol {
   margin: -0.15em 0 0 -0.85rem;
   padding-left: 2.1rem;
-  border-left: 1.5px solid var(--color-text-muted);
+  border-left: 2px solid var(--color-text-muted);
 }
 .bullet-threading .page-body li > ul > li::after,
 .bullet-threading .page-body li > ol > li::after {
@@ -230,7 +230,7 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   top: 0.62em;
   left: -2.1rem;
   width: calc(1.25rem + 2px);
-  height: 1.5px;
+  height: 2px;
   background: var(--color-text-muted);
   transform: translateY(-50%);
 }
@@ -311,7 +311,7 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   position: relative;
   background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
   background-repeat: no-repeat;
-  background-size: 1.5px 100%;
+  background-size: 2px 100%;
   background-position: 0.4rem 1.9rem;
 }
 .bullet-threading .page-body section.level2 {
@@ -319,16 +319,16 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   padding-left: 1.25rem;
   background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
   background-repeat: no-repeat;
-  background-size: 1.5px 100%;
+  background-size: 2px 100%;
   background-position: 0.4rem 0.62em;
 }
 .bullet-threading .page-body section.level2::before {
   content: "";
   position: absolute;
   top: 0.62em;
-  left: 0.4rem;
-  width: 5px;
-  height: 5px;
+  left: 0.15rem;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--color-text-muted);
   transform: translateY(-50%);
@@ -340,7 +340,7 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   padding-left: 2.1rem;
   background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
   background-repeat: no-repeat;
-  background-size: 1.5px 100%;
+  background-size: 2px 100%;
   background-position: 1.25rem 0.62em;
 }
 .bullet-threading .page-body section.level3::before,
@@ -348,9 +348,9 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   content: "";
   position: absolute;
   top: 0.62em;
-  left: 1.25rem;
-  width: 5px;
-  height: 5px;
+  left: 1rem;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--color-text-muted);
   transform: translateY(-50%);
@@ -362,7 +362,7 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   top: 0.62em;
   left: 0;
   width: calc(1.25rem + 2px);
-  height: 1.5px;
+  height: 2px;
   background: var(--color-text-muted);
   transform: translateY(-50%);
 }
