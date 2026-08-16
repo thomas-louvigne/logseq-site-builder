@@ -219,8 +219,8 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 }
 .bullet-threading .page-body li > ul,
 .bullet-threading .page-body li > ol {
-  margin: -0.15em 0 0 0.3rem;
-  padding-left: 0.95rem;
+  margin: -0.15em 0 0 -0.85rem;
+  padding-left: 2.1rem;
   border-left: 1.5px solid var(--color-text-muted);
 }
 .bullet-threading .page-body li > ul > li::after,
@@ -228,8 +228,8 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   content: "";
   position: absolute;
   top: 0.62em;
-  left: -0.95rem;
-  width: 0.65rem;
+  left: -2.1rem;
+  width: calc(1.25rem + 2px);
   height: 1.5px;
   background: var(--color-text-muted);
   transform: translateY(-50%);
