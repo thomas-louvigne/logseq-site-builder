@@ -36,8 +36,8 @@ def _build_site_config(
 
     menu: list[dict[str, str]] = toml.get("menu", [])
 
-    raw_flatten = site_section.get("flatten_headings_from")
-    flatten_headings_from: int | None = int(raw_flatten) if raw_flatten is not None else None
+    raw_listify = site_section.get("listify_headings_from")
+    listify_headings_from: int | None = int(raw_listify) if raw_listify is not None else None
 
     hidden: list[str] = site_section.get("hidden", [])
     pages_directory: str = site_section.get("pages_directory", "pages")
@@ -75,7 +75,7 @@ def _build_site_config(
         social_links=parsed_socials,
         home_slug=home_slug,
         menu=menu,
-        flatten_headings_from=flatten_headings_from,
+        listify_headings_from=listify_headings_from,
         hidden=hidden,
         pages_directory=pages_directory,
         journals_directory=journals_directory,

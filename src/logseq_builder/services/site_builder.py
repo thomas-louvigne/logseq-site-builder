@@ -3,6 +3,8 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from bs4 import BeautifulSoup, Tag
+
 from ..domain.page import Page, SiteConfig
 from ..ports.interfaces import ContentConverter, PageRepository, SiteWriter
 from .link_resolver import LinkResolver, _IMAGE_EXTENSIONS, slugify
@@ -102,8 +104,8 @@ class SiteBuilder:
             preprocessed, assets = resolver.preprocess_md(page.raw_content, page.title)
         page.asset_filenames = assets
         html = self._converter.convert(preprocessed, page.format)
-        if config.flatten_headings_from is not None:
-            html = _flatten_headings(html, config.flatten_headings_from)
+        if config.listify_headings_from is not None:
+            html = _sections_to_lists(html, config.listify_headings_from)
         return _add_download_to_asset_links(html)
 
     def _find_home(self, pages: list[Page], home_slug: str) -> Page:
@@ -137,13 +139,91 @@ def _add_download_to_asset_links(html: str) -> str:
     return re.sub(r"<a\b[^>]*>", add_download, html)
 
 
-def _flatten_headings(html: str, from_level: int) -> str:
-    """Replace <hN> tags (N >= from_level) with <p> in the generated HTML."""
-    for level in range(from_level, 7):
-        html = re.sub(
-            rf"<h{level}[^>]*>(.*?)</h{level}>",
-            r"<p>\1</p>",
-            html,
-            flags=re.DOTALL,
-        )
-    return html
+_SECTION_LEVEL_RE = re.compile(r"^level(\d+)$")
+_HEADING_TAGS = {"h1", "h2", "h3", "h4", "h5", "h6"}
+
+
+def _section_level(node: object) -> int | None:
+    """Return N for a <section class="levelN">, else None."""
+    if not isinstance(node, Tag) or node.name != "section":
+        return None
+    for css_class in node.get("class", []):
+        match = _SECTION_LEVEL_RE.match(css_class)
+        if match:
+            return int(match.group(1))
+    return None
+
+
+def _section_to_li(soup: BeautifulSoup, section: Tag, from_level: int) -> Tag:
+    """Unwrap a heading section into a <li>, recursing into deeper sections first
+    so they become nested <ul>s instead of losing their own threading."""
+    _sections_to_lists_in(soup, section, from_level)
+
+    li = soup.new_tag("li")
+    if section_id := section.get("id"):
+        li["id"] = section_id
+
+    heading = section.find(lambda t: isinstance(t, Tag) and t.name in _HEADING_TAGS, recursive=False)
+    if heading is not None:
+        p = soup.new_tag("p")
+        for child in list(heading.contents):
+            p.append(child.extract())
+        heading.decompose()
+        li.append(p)
+
+    for child in list(section.contents):
+        li.append(child.extract())
+    return li
+
+
+def _sections_to_lists_in(soup: BeautifulSoup, container: Tag, from_level: int) -> None:
+    """Replace runs of consecutive `level >= from_level` heading sections among
+    `container`'s direct children with a <ul> of <li> items, preserving any
+    other content in place."""
+    children = list(container.contents)
+    i = 0
+    while i < len(children):
+        level = _section_level(children[i])
+        if level is None or level < from_level:
+            # Not a qualifying section itself, but one could be nested inside
+            # (e.g. a <div> wrapper, or a level1/level2 section left as-is).
+            if isinstance(children[i], Tag):
+                _sections_to_lists_in(soup, children[i], from_level)
+            i += 1
+            continue
+        # Collect a run of consecutive qualifying sections, tolerating the
+        # whitespace-only text nodes Pandoc leaves between sibling tags.
+        run = []
+        whitespace = []
+        j = i
+        while j < len(children):
+            node = children[j]
+            node_level = _section_level(node)
+            if node_level is not None and node_level >= from_level:
+                run.append(node)
+                j += 1
+            elif isinstance(node, str) and not node.strip():
+                whitespace.append(node)
+                j += 1
+            else:
+                break
+        ul = soup.new_tag("ul")
+        for section in run:
+            ul.append(_section_to_li(soup, section, from_level))
+        run[0].insert_before(ul)
+        for section in run:
+            section.extract()
+        for node in whitespace:
+            node.extract()
+        i = j
+
+
+def _sections_to_lists(html: str, from_level: int) -> str:
+    """Render Logseq blocks styled as headings (org `*` level >= from_level, or
+    the equivalent Markdown `#`) as plain nested bullet lists instead of Pandoc's
+    <section class="levelN"> heading structure, so they get normal bullet
+    threading like any other nested block rather than the separate
+    heading-section threading rules."""
+    soup = BeautifulSoup(html, "html.parser")
+    _sections_to_lists_in(soup, soup, from_level)
+    return str(soup)

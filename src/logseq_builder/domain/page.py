@@ -31,7 +31,7 @@ class SiteConfig:
     social_links: dict[str, str] = field(default_factory=dict)
     home_slug: str = "index"
     menu: list[dict[str, str]] = field(default_factory=list)
-    flatten_headings_from: int | None = None
+    listify_headings_from: int | None = None
     # From config.edn
     hidden: list[str] = field(default_factory=list)
     pages_directory: str = "pages"

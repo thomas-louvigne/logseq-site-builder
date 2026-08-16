@@ -20,9 +20,11 @@ home_page = "home"
 # Auto-read from config.edn :publishing/all-pages-public? if absent.
 all_public = false
 
-# Org headings at level >= N are turned into plain paragraphs (<h3>… → <p>).
+# Headings at level >= N (org `***` = level 3, Markdown `###`) are rendered
+# as plain nested bullet lists instead of heading sections — same bullet
+# threading as any other nested block, just no more <h3>/<h4> styling.
 # Remove or comment out to disable.
-flatten_headings_from = 3
+listify_headings_from = 3
 
 # Pages and journals directories (auto-read from config.edn if absent).
 pages_directory    = "pages"
