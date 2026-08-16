@@ -300,11 +300,12 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 /* ── Heading indentation (Pandoc --section-divs) ─────────── */
 /* Bullet threading — same dot + connector geometry as nested lists, applied
    to Logseq blocks that Pandoc renders as nested heading sections instead of
-   <ul>/<ol> (e.g. blocks styled as headings in Logseq). section.level1 is the
-   root (dot only, no incoming line, like a top-level <li>); each deeper level
-   nests one inside the previous, so the same margin/padding math used for
-   `li > ul` aligns every stem under its parent's own dot. */
-.bullet-threading .page-body section.level1 {
+   <ul>/<ol> (e.g. blocks styled as headings in Logseq). section.level1 (top-
+   level page headings) is left untouched — no dot, no indent. section.level2
+   is the threading root (dot only, no incoming line, like a top-level <li>);
+   level3/level4 nest one inside the previous, so the same margin/padding math
+   used for `li > ul` aligns every stem under its parent's own dot. */
+.bullet-threading .page-body section.level2 {
   position: relative;
   padding-left: 1.25rem;
   background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
@@ -312,7 +313,7 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   background-size: 1.5px 100%;
   background-position: 0.4rem 0.62em;
 }
-.bullet-threading .page-body section.level1::before {
+.bullet-threading .page-body section.level2::before {
   content: "";
   position: absolute;
   top: 0.62em;
@@ -323,7 +324,6 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   background: var(--color-text-muted);
   transform: translateY(-50%);
 }
-.bullet-threading .page-body section.level2,
 .bullet-threading .page-body section.level3,
 .bullet-threading .page-body section.level4 {
   position: relative;
@@ -334,7 +334,6 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   background-size: 1.5px 100%;
   background-position: 1.25rem 0.62em;
 }
-.bullet-threading .page-body section.level2::before,
 .bullet-threading .page-body section.level3::before,
 .bullet-threading .page-body section.level4::before {
   content: "";
@@ -347,7 +346,6 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   background: var(--color-text-muted);
   transform: translateY(-50%);
 }
-.bullet-threading .page-body section.level1 > section.level2::after,
 .bullet-threading .page-body section.level2 > section.level3::after,
 .bullet-threading .page-body section.level3 > section.level4::after {
   content: "";
