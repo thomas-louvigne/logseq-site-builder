@@ -198,13 +198,15 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
    bullet to its nested children, like an outliner. Feature-flagged: toggled
    by `bullet_threading` in logseq-site-builder.toml, which adds/removes the
    .bullet-threading class on <body>. */
-.bullet-threading .page-body ul {
+.bullet-threading .page-body ul,
+.bullet-threading .page-body ol {
   list-style: none;
 }
 .bullet-threading .page-body li {
   position: relative;
 }
-.bullet-threading .page-body ul > li::before {
+.bullet-threading .page-body ul > li::before,
+.bullet-threading .page-body ol > li::before {
   content: "";
   position: absolute;
   top: 0.62em;
@@ -221,7 +223,8 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   padding-left: 0.95rem;
   border-left: 1.5px solid var(--color-text-muted);
 }
-.bullet-threading .page-body li > ul > li::after {
+.bullet-threading .page-body li > ul > li::after,
+.bullet-threading .page-body li > ol > li::after {
   content: "";
   position: absolute;
   top: 0.62em;
