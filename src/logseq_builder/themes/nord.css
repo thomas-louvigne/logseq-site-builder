@@ -21,6 +21,8 @@
   /* Accent — Nord Frost teal/blue */
   --color-accent:       hsl(179, 25%, 65%);   /* nord7 */
   --color-accent-hover: hsl(193, 43%, 67%);   /* nord8 */
+  --color-heading:      hsl(219, 28%, 88%);   /* nord4 — Snow Storm 1 */
+  --color-code:         hsl(40, 71%, 70%);    /* nord13 — Aurora yellow, sets code apart from prose */
   /* Navigation sidebar — slightly darker (Nord "bg-black") */
   --color-nav-bg:       hsl(220, 28%, 18%);
   --color-nav-text:     hsl(219, 28%, 88%);   /* nord4 */
@@ -301,7 +303,7 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.025em;
-  color: hsl(179, 25%, 65%);   /* Nord frost teal — signature Nord touch */
+  color: var(--color-accent);   /* Nord frost teal — signature Nord touch */
 }
 
 /* ── Prose ───────────────────────────────────────────────── */
@@ -314,7 +316,7 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   line-height: 1.25;
   font-weight: 600;
   letter-spacing: -0.015em;
-  color: hsl(219, 28%, 88%);   /* nord4 — Snow Storm 1 */
+  color: var(--color-heading);
 }
 .page-body h1 { font-size: 1.5rem; }
 .page-body h2 { font-size: 1.25rem; }
@@ -543,14 +545,28 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 .bullet-threading .page-body section:hover > details > summary::before {
   background-color: var(--tree-line-hover);
 }
+/* No border: a bordered box in this shade reads as a disabled form
+   field (same language as .site-nav__search-wrap), not a quotation. A
+   tint + glyph keeps it legible as prose. */
 .page-body blockquote {
-  border: 1px solid var(--color-accent-hover);
-  padding: 0.4rem 0.875rem;
+  position: relative;
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
   margin: 1em 0;
-  background: hsl(220, 17%, 27%);
+  background: hsl(220, 17%, 26%);
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);
   font-style: italic;
+}
+.page-body blockquote::before {
+  content: "\201C";
+  position: absolute;
+  top: 0.1em;
+  left: 0.9rem;
+  font-size: 1.75rem;
+  font-style: normal;
+  line-height: 1;
+  color: var(--color-accent);
+  opacity: 0.7;
 }
 .page-body code {
   font-family: var(--font-mono);
@@ -558,7 +574,7 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   background: hsl(222, 16%, 28%);   /* nord1 */
   padding: 0.1em 0.35em;
   border-radius: var(--radius-sm);
-  color: hsl(219, 28%, 88%);        /* nord4 */
+  color: var(--color-code);
 }
 .page-body pre {
   background: hsl(220, 28%, 18%);   /* darker than nord0 */
@@ -595,7 +611,7 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   font-weight: 600;
   font-size: 0.8125rem;
   letter-spacing: 0.01em;
-  color: hsl(219, 28%, 88%);
+  color: var(--color-heading);
 }
 .page-body img {
   border-radius: var(--radius);
