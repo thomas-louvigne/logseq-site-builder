@@ -14,6 +14,8 @@ _TITLE_DIRECTIVE = re.compile(r"(?:#\+TITLE:|^title::)\s*(.+)", re.IGNORECASE | 
 _DESCRIPTION_DIRECTIVE = re.compile(r"(?:#\+DESCRIPTION:|^description::)\s*(.+)", re.IGNORECASE | re.MULTILINE)
 _ORG_ICON = re.compile(r"^:icon:\s*(.+)", re.MULTILINE)
 _MD_ICON = re.compile(r"^icon::\s*(.+)", re.IGNORECASE | re.MULTILINE)
+_ORG_HEADING = re.compile(r"^\*+\s+(.+)$", re.MULTILINE)
+_MD_HEADING = re.compile(r"^#+\s+(.+)$", re.MULTILINE)
 
 
 def _decode_logseq_filename(stem: str) -> str:
@@ -45,6 +47,17 @@ def _parse_is_public(content: str, all_public: bool) -> bool:
     if all_public:
         return True
     return bool(_PUBLIC_TRUE.search(content))
+
+
+def _parse_headline(content: str, fmt: str) -> str:
+    """Best-effort title for a journal entry: an explicit #+TITLE:/title::
+    directive, else its first heading, else empty (falls back to the date)."""
+    m = _TITLE_DIRECTIVE.search(content)
+    if m:
+        return m.group(1).strip()
+    heading_re = _ORG_HEADING if fmt == "org" else _MD_HEADING
+    m = heading_re.search(content)
+    return m.group(1).strip() if m else ""
 
 
 def _java_date_fmt_to_strftime(fmt: str) -> str:
@@ -148,15 +161,17 @@ class LogseqReader(PageRepository):
             if not _parse_is_public(content, self._all_public):
                 continue
             title = self._format_title(date)
+            fmt = "org" if path.suffix == ".org" else "md"
             slug = f"journal-{date.isoformat()}"
             pages.append(Page(
                 title=title,
                 slug=slug,
                 raw_content=content,
                 source_path=path,
-                format="org" if path.suffix == ".org" else "md",
+                format=fmt,
                 is_public=True,
                 date=date,
+                headline=_parse_headline(content, fmt),
             ))
         yield from sorted(pages, key=lambda p: p.date, reverse=True)  # type: ignore[arg-type]
 

@@ -12,10 +12,13 @@
     {% for post in journal_pages %}
     <li class="blog-list__item">
       <a class="blog-list__link" href="{{ post.slug }}.html">
+        <span class="blog-list__title">{{ post.headline if post.headline else post.title }}</span>
+        {% if post.headline %}
         {% if post.date %}
         <time class="blog-list__date" datetime="{{ post.date.isoformat() }}">{{ post.title }}</time>
         {% else %}
         <span class="blog-list__date">{{ post.title }}</span>
+        {% endif %}
         {% endif %}
       </a>
     </li>

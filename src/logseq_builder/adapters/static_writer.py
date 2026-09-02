@@ -121,7 +121,7 @@ class StaticWriter(SiteWriter):
         js_out = self._output_dir / "js"
         js_out.mkdir(parents=True, exist_ok=True)
 
-        css_src = self._theme_css if self._theme_css is not None else THEMES_DIR / "nord.css"
+        css_src = self._theme_css if self._theme_css is not None else THEMES_DIR / "default.css"
         if css_src.exists():
             shutil.copy2(css_src, self._output_dir / "style.css")
 

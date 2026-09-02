@@ -16,6 +16,7 @@ class Page:
     icon: str = ""
     asset_filenames: list[str] = field(default_factory=list)
     date: datetime.date | None = None  # set for journal/blog posts
+    headline: str = ""  # journal posts only: title parsed from the entry's own content
 
     @property
     def output_filename(self) -> str:
