@@ -20,11 +20,23 @@ home_page = "home"
 # Auto-read from config.edn :publishing/all-pages-public? if absent.
 all_public = false
 
-# Headings at level >= N (org `***` = level 3, Markdown `###`) are rendered
-# as plain nested bullet lists instead of heading sections — same bullet
-# threading as any other nested block, just no more <h3>/<h4> styling.
-# Remove or comment out to disable.
-listify_headings_from = 3
+# Org-mode only (Markdown pages are unaffected). Controls whether/how deep
+# `*` headings are rendered as plain nested bullet lists instead of heading
+# sections — same bullet threading as any other nested block, just no more
+# <h2>/<h3> styling.
+#
+# Default is "auto": per org page, the deepest `*` level actually used on
+# that page becomes a bullet list, and shallower levels above it stay as
+# real headings (e.g. `*` stays <h1>, the deepest `**`/`***`/... becomes
+# bullets). If a page only uses one heading level (no nesting), that level
+# is rendered as plain text instead of a bullet list, since there's nothing
+# above it to nest under.
+#
+# Set to a fixed number N instead to always flatten level >= N (org `***`
+# = level 3) regardless of each page's actual depth.
+#
+# Set to false to disable and render every `*` heading as a real heading.
+org_listify_headings_from = "auto"
 
 # Pages and journals directories (auto-read from config.edn if absent).
 pages_directory    = "pages"

@@ -36,8 +36,16 @@ def _build_site_config(
 
     menu: list[dict[str, str]] = toml.get("menu", [])
 
-    raw_listify = site_section.get("listify_headings_from")
-    listify_headings_from: int | None = int(raw_listify) if raw_listify is not None else None
+    raw_listify = site_section.get("org_listify_headings_from", "auto")
+    org_listify_headings_from: int | str | None
+    if raw_listify is None or raw_listify is False:
+        org_listify_headings_from = None
+    elif isinstance(raw_listify, str) and raw_listify.strip().lower() == "auto":
+        org_listify_headings_from = "auto"
+    elif isinstance(raw_listify, str) and raw_listify.strip().lower() in ("false", "off", "none", ""):
+        org_listify_headings_from = None
+    else:
+        org_listify_headings_from = int(raw_listify)
 
     hidden: list[str] = site_section.get("hidden", [])
     pages_directory: str = site_section.get("pages_directory", "pages")
@@ -75,7 +83,7 @@ def _build_site_config(
         social_links=parsed_socials,
         home_slug=home_slug,
         menu=menu,
-        listify_headings_from=listify_headings_from,
+        org_listify_headings_from=org_listify_headings_from,
         hidden=hidden,
         pages_directory=pages_directory,
         journals_directory=journals_directory,

@@ -1,6 +1,7 @@
 import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Literal
 
 
 @dataclass
@@ -32,7 +33,7 @@ class SiteConfig:
     social_links: dict[str, str] = field(default_factory=dict)
     home_slug: str = "index"
     menu: list[dict[str, str]] = field(default_factory=list)
-    listify_headings_from: int | None = None
+    org_listify_headings_from: int | Literal["auto"] | None = "auto"
     # From config.edn
     hidden: list[str] = field(default_factory=list)
     pages_directory: str = "pages"

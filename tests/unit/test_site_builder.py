@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from logseq_builder.services.site_builder import _add_collapsible_tree, _sections_to_lists
+from logseq_builder.services.site_builder import _add_collapsible_tree, _auto_listify, _sections_to_lists
 
 
 class TestSectionsToLists:
@@ -74,6 +74,55 @@ class TestSectionsToLists:
     def test_no_qualifying_sections_is_a_noop(self):
         html = '<div class="page-body"><p>Just a paragraph.</p></div>'
         result = _sections_to_lists(html, 3)
+        assert "<p>Just a paragraph.</p>" in result
+        assert "<ul>" not in result
+
+
+class TestAutoListify:
+    def test_deepest_level_becomes_bullets_shallower_stays_heading(self):
+        html = (
+            '<section class="level1" id="titre"><h1>titre</h1>'
+            '<section class="level2" id="a"><h2>pas titre</h2><p>text</p></section>'
+            '<section class="level2" id="b"><h2>pas titre</h2><p>text</p></section>'
+            "</section>"
+        )
+        result = _auto_listify(html)
+        soup = BeautifulSoup(result, "html.parser")
+        assert soup.find("h1") is not None
+        assert soup.find("h2") is None
+        lis = soup.find_all("li")
+        assert len(lis) == 2
+
+    def test_three_levels_only_deepest_becomes_bullets(self):
+        html = (
+            '<section class="level1" id="a"><h1>A</h1>'
+            '<section class="level2" id="b"><h2>B</h2>'
+            '<section class="level3" id="c"><h3>C</h3></section>'
+            "</section></section>"
+        )
+        result = _auto_listify(html)
+        soup = BeautifulSoup(result, "html.parser")
+        assert soup.find("h1") is not None
+        assert soup.find("h2") is not None
+        assert soup.find("h3") is None
+        assert soup.find("li", id="c") is not None
+
+    def test_single_level_becomes_plain_paragraphs_not_bullets(self):
+        html = (
+            '<section class="level1" id="titre"><h1>titre</h1><p>some text</p></section>'
+            '<section class="level1" id="titre2"><h1>titre2</h1><p>more text</p></section>'
+        )
+        result = _auto_listify(html)
+        soup = BeautifulSoup(result, "html.parser")
+        assert soup.find("h1") is None
+        assert soup.find("ul") is None
+        assert soup.find("section") is None
+        paragraphs = [p.get_text() for p in soup.find_all("p")]
+        assert paragraphs == ["titre", "some text", "titre2", "more text"]
+
+    def test_no_headings_is_a_noop(self):
+        html = '<div class="page-body"><p>Just a paragraph.</p></div>'
+        result = _auto_listify(html)
         assert "<p>Just a paragraph.</p>" in result
         assert "<ul>" not in result
 

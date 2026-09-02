@@ -104,8 +104,11 @@ class SiteBuilder:
             preprocessed, assets = resolver.preprocess_md(page.raw_content, page.title)
         page.asset_filenames = assets
         html = self._converter.convert(preprocessed, page.format)
-        if config.listify_headings_from is not None:
-            html = _sections_to_lists(html, config.listify_headings_from)
+        if page.format == "org" and config.org_listify_headings_from is not None:
+            if config.org_listify_headings_from == "auto":
+                html = _auto_listify(html)
+            else:
+                html = _sections_to_lists(html, config.org_listify_headings_from)
         if config.bullet_threading:
             html = _add_collapsible_tree(html)
         return _add_download_to_asset_links(html)
@@ -156,10 +159,10 @@ def _section_level(node: object) -> int | None:
     return None
 
 
-def _section_to_li(soup: BeautifulSoup, section: Tag, from_level: int) -> Tag:
+def _section_to_li(soup: BeautifulSoup, section: Tag, qualifies: Callable[[object], bool]) -> Tag:
     """Unwrap a heading section into a <li>, recursing into deeper sections first
     so they become nested <ul>s instead of losing their own threading."""
-    _sections_to_lists_in(soup, section, from_level)
+    _sections_to_lists_in(soup, section, qualifies)
 
     li = soup.new_tag("li")
     if section_id := section.get("id"):
@@ -178,19 +181,18 @@ def _section_to_li(soup: BeautifulSoup, section: Tag, from_level: int) -> Tag:
     return li
 
 
-def _sections_to_lists_in(soup: BeautifulSoup, container: Tag, from_level: int) -> None:
-    """Replace runs of consecutive `level >= from_level` heading sections among
+def _sections_to_lists_in(soup: BeautifulSoup, container: Tag, qualifies: Callable[[object], bool]) -> None:
+    """Replace runs of consecutive heading sections matching `qualifies` among
     `container`'s direct children with a <ul> of <li> items, preserving any
     other content in place."""
     children = list(container.contents)
     i = 0
     while i < len(children):
-        level = _section_level(children[i])
-        if level is None or level < from_level:
+        if not qualifies(children[i]):
             # Not a qualifying section itself, but one could be nested inside
-            # (e.g. a <div> wrapper, or a level1/level2 section left as-is).
+            # (e.g. a <div> wrapper, or a heading section left as-is).
             if isinstance(children[i], Tag):
-                _sections_to_lists_in(soup, children[i], from_level)
+                _sections_to_lists_in(soup, children[i], qualifies)
             i += 1
             continue
         # Collect a run of consecutive qualifying sections, tolerating the
@@ -200,8 +202,7 @@ def _sections_to_lists_in(soup: BeautifulSoup, container: Tag, from_level: int) 
         j = i
         while j < len(children):
             node = children[j]
-            node_level = _section_level(node)
-            if node_level is not None and node_level >= from_level:
+            if qualifies(node):
                 run.append(node)
                 j += 1
             elif isinstance(node, str) and not node.strip():
@@ -211,7 +212,7 @@ def _sections_to_lists_in(soup: BeautifulSoup, container: Tag, from_level: int) 
                 break
         ul = soup.new_tag("ul")
         for section in run:
-            ul.append(_section_to_li(soup, section, from_level))
+            ul.append(_section_to_li(soup, section, qualifies))
         run[0].insert_before(ul)
         for section in run:
             section.extract()
@@ -220,14 +221,69 @@ def _sections_to_lists_in(soup: BeautifulSoup, container: Tag, from_level: int) 
         i = j
 
 
+def _at_least_level(from_level: int) -> Callable[[object], bool]:
+    def qualifies(node: object) -> bool:
+        level = _section_level(node)
+        return level is not None and level >= from_level
+
+    return qualifies
+
+
 def _sections_to_lists(html: str, from_level: int) -> str:
-    """Render Logseq blocks styled as headings (org `*` level >= from_level, or
-    the equivalent Markdown `#`) as plain nested bullet lists instead of Pandoc's
-    <section class="levelN"> heading structure, so they get normal bullet
-    threading like any other nested block rather than the separate
-    heading-section threading rules."""
+    """Render org headings (`*` level >= from_level) as plain nested bullet
+    lists instead of Pandoc's <section class="levelN"> heading structure, so
+    they get normal bullet threading like any other nested block rather than
+    the separate heading-section threading rules. Driven by the
+    `org_listify_headings_from` config, which only applies to org pages."""
     soup = BeautifulSoup(html, "html.parser")
-    _sections_to_lists_in(soup, soup, from_level)
+    _sections_to_lists_in(soup, soup, _at_least_level(from_level))
+    return str(soup)
+
+
+def _sections_to_normal_in(soup: BeautifulSoup, container: Tag, level: int) -> None:
+    """Unwrap every `level`-heading section under `container` into plain
+    <p> text, dropping the heading markup entirely (used when a page has
+    only one heading level and there's nothing above it to nest bullets
+    under)."""
+    for child in list(container.contents):
+        if _section_level(child) == level:
+            heading = child.find(lambda t: isinstance(t, Tag) and t.name in _HEADING_TAGS, recursive=False)
+            if heading is not None:
+                p = soup.new_tag("p")
+                for node in list(heading.contents):
+                    p.append(node.extract())
+                heading.replace_with(p)
+            child.unwrap()
+        elif isinstance(child, Tag):
+            _sections_to_normal_in(soup, child, level)
+
+
+def _is_leaf_heading(node: object) -> bool:
+    """A heading section is `*`'s "last level" for its own branch when it has
+    no nested heading sections of its own — regardless of what depth other
+    branches on the page reach. Level 1 never qualifies: it's the page's
+    outline root and always stays a real heading (see `_auto_listify`)."""
+    level = _section_level(node)
+    if level is None or level <= 1:
+        return False
+    return not any(_section_level(child) is not None for child in node.contents)
+
+
+def _auto_listify(html: str) -> str:
+    """The `org_listify_headings_from = "auto"` mode: per org page, flatten
+    every heading section that has no sub-headings of its own (the deepest
+    `*` level reached by that particular branch) into a bullet list, while
+    branches with sub-headings keep their own heading real. If the whole
+    page only uses one heading level (no nesting anywhere), there's nothing
+    for it to nest under, so it's rendered as plain text instead."""
+    soup = BeautifulSoup(html, "html.parser")
+    levels = {lvl for lvl in (_section_level(t) for t in soup.find_all(True)) if lvl is not None}
+    if not levels:
+        return html
+    if len(levels) == 1:
+        _sections_to_normal_in(soup, soup, next(iter(levels)))
+    else:
+        _sections_to_lists_in(soup, soup, _is_leaf_heading)
     return str(soup)
 
 
