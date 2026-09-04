@@ -46,6 +46,23 @@ journals_directory = "journals"
 # Auto-read from config.edn :hidden if absent.
 # hidden = ["/private", "/drafts/secret.org"]
 
+# ── External static sites ────────────────────────────────────────────────────
+# Mini static sites that live in their own repo/folder, outside this Logseq
+# project (e.g. something versioned separately). Every immediate subdirectory
+# of `path` is copied as-is to the root of the generated site — same
+# mechanism as the "Custom HTML/CSS pages" feature for subdirs of pages/,
+# just sourced from outside the project. This makes it easy to link to them
+# from Logseq with a normal relative link, since the output layout is the
+# same either way.
+#
+# One [[external_static_dirs]] block per external folder:
+#
+# [[external_static_dirs]]
+# path = "/home/you/repo/my-external-project"
+#
+# [[external_static_dirs]]
+# path = "/home/you/repo/another-project"
+
 # ── Template ───────────────────────────────────────────────────────────────────
 
 # Theme to apply to the generated site.

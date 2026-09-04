@@ -47,3 +47,4 @@ class SiteConfig:
     rss: bool = False
     lang: str = "en"
     bullet_threading: bool = True
+    external_static_dirs: list[str] = field(default_factory=list)

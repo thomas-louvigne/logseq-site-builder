@@ -125,6 +125,16 @@ class TestSiteBuilder:
         builder.build(SiteConfig(title="T", home_slug="accueil"), tmp_path / "assets")
         assert builder.broken_links == [("Accueil", "Page Fantome")]
 
+    def test_copies_external_static_dir(self, logseq_dir, output_dir, tmp_path):
+        external = tmp_path / "external"
+        (external / "lugny").mkdir(parents=True)
+        (external / "lugny" / "map.svg").write_text("<svg></svg>", encoding="utf-8")
+
+        config = SiteConfig(title="Mon Site", home_slug="accueil", external_static_dirs=[str(external)])
+        build(logseq_dir, output_dir, config)
+
+        assert (output_dir / "lugny" / "map.svg").exists()
+
     def test_raises_on_no_public_pages(self, tmp_path):
         pages = tmp_path / "pages"
         pages.mkdir()

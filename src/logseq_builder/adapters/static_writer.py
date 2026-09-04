@@ -60,22 +60,24 @@ class StaticWriter(SiteWriter):
         html = template.render(config=config)
         (self._output_dir / "404.html").write_text(html, encoding="utf-8")
 
-    def copy_pages_subdirs(self, pages_dir: Path) -> None:
+    def copy_pages_subdirs(self, pages_dir: Path, require_web_files: bool = True) -> None:
         if not pages_dir.is_dir():
             return
         for subdir in pages_dir.iterdir():
             if not subdir.is_dir():
                 continue
-            has_web_files = any(
-                f.suffix in {".html", ".css"}
-                for f in subdir.rglob("*")
-                if f.is_file()
-            )
-            if has_web_files:
-                dest = self._output_dir / subdir.name
-                if dest.exists():
-                    shutil.rmtree(dest)
-                shutil.copytree(subdir, dest)
+            if require_web_files:
+                has_web_files = any(
+                    f.suffix in {".html", ".css"}
+                    for f in subdir.rglob("*")
+                    if f.is_file()
+                )
+                if not has_web_files:
+                    continue
+            dest = self._output_dir / subdir.name
+            if dest.exists():
+                shutil.rmtree(dest)
+            shutil.copytree(subdir, dest)
 
     def write_sitemap(self, pages: list[Page], journal_pages: list[Page], config: SiteConfig) -> None:
         if not config.base_url:

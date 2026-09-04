@@ -19,6 +19,7 @@ Turns a [Logseq](https://logseq.com/) graph into a static website — HTML + CSS
 - **Themes** — built-in `default` and `dark`, or bring your own CSS
 - **Nav menu & social links**, configurable via TOML
 - **Custom HTML/CSS pages** copied as-is (embeds, mini-apps, slide decks…)
+- **External static sites** — copy in mini-sites that live outside the project (`[[external_static_dirs]]`)
 - **Full-text search**, client-side (Fuse.js), no server needed
 - `--check-links` to catch broken wiki links before they 404
 - `--check-assets` to list assets that no page references

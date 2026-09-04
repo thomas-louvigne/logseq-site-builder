@@ -58,6 +58,10 @@ def _build_site_config(
     rss: bool = site_section.get("rss", False)
     bullet_threading: bool = site_section.get("bullet_threading", True)
 
+    external_static_dirs: list[str] = [
+        entry["path"] for entry in toml.get("external_static_dirs", []) if entry.get("path")
+    ]
+
     toml_home = site_section.get("home_page")
     raw_home = home_page or toml_home
     home_slug = slugify(raw_home) if raw_home else _auto_detect_home(public_pages)
@@ -94,6 +98,7 @@ def _build_site_config(
         blog_slug=blog_slug,
         rss=rss,
         bullet_threading=bullet_threading,
+        external_static_dirs=external_static_dirs,
     )
 
 
@@ -244,6 +249,11 @@ def main(
         click.echo(f"  {journal_count} journal entry(ies) found")
     if config.hidden:
         click.echo(f"  {len(config.hidden)} hidden path(s): {config.hidden}")
+    if config.external_static_dirs:
+        click.echo(f"  {len(config.external_static_dirs)} external static dir(s) configured")
+        for external_dir in config.external_static_dirs:
+            if not Path(external_dir).is_dir():
+                click.echo(f"Warning: external_static_dirs path not found: {external_dir}", err=True)
 
     total_pages = len(public_pages) + journal_count
     try:

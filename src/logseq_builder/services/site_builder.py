@@ -73,6 +73,9 @@ class SiteBuilder:
         pages_dir = logseq_assets_dir.parent / config.pages_directory
         self._writer.copy_pages_subdirs(pages_dir)
 
+        for external_dir in config.external_static_dirs:
+            self._writer.copy_pages_subdirs(Path(external_dir), require_web_files=False)
+
         self._writer.write_sitemap(pages, journal_pages, config)
         self._writer.write_robots(config)
         self._writer.write_search_index(pages, journal_pages, config)
