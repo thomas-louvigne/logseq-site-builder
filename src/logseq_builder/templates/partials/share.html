@@ -17,7 +17,7 @@
 ] %}
 {%- set has_share = config.share.items() | rejectattr("0", "equalto", "print") | selectattr("1") | list | length > 0 %}
 {%- if has_share or config.share.print %}
-<div class="share-bar" data-share-text="{{ share_text }}">
+<div class="share-bar{% if config.share_layout == 'vertical' %} share-bar--vertical{% endif %}" data-share-text="{{ share_text }}">
   {% if has_share %}<span class="share-bar__label">Partager</span>{% endif %}
   <ul class="share-bar__list">
     {% if config.share.native %}

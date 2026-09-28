@@ -12,7 +12,7 @@ Turns a [Logseq](https://logseq.com/) graph into a static website — HTML + CSS
 
 ![The default, dark and nord built-in themes, rendered from the sample sites in test-sites/](docs/themes.png)
 
-Three built-in themes — `default`, `dark` and `nord` — or bring your own CSS. The optional **tree view** (`bullet_threading = true`, shown on `default` and `nord` above) draws guide lines between nested bullets and makes every branch foldable; turn it off for classic bullets (`dark` above). Every page also gets a **share & print bar** under its title; each button can be switched off from the `[share]` table of the TOML.
+Three built-in themes — `default`, `dark` and `nord` — or bring your own CSS. The optional **tree view** (`bullet_threading = true`, shown on `default` and `nord` above) draws guide lines between nested bullets and makes every branch foldable; turn it off for classic bullets (`dark` above). Every page also gets a **share & print bar** under its title (or pinned to the right edge with `layout = "vertical"`); each button can be switched off from the `[share]` table of the TOML.
 
 ## Features
 
@@ -25,7 +25,8 @@ Three built-in themes — `default`, `dark` and `nord` — or bring your own CSS
 - **Nav menu & social links**, configurable via TOML
 - **Custom HTML/CSS pages** copied as-is (embeds, mini-apps, slide decks…)
 - **External static sites** — copy in mini-sites that live outside the project (`[[external_static_dirs]]`)
-- **Share & print** — share buttons on every page (WhatsApp, Facebook, X, Bluesky, LinkedIn, e-mail, copy link, native share sheet on mobile) and a clean print view without the menu
+- **Share & print** — share buttons on every page (WhatsApp, Facebook, X, Bluesky, LinkedIn, e-mail, copy link, native share sheet on mobile), each one switchable in `[share]`, as a row under the title or a vertical column on the right (`layout = "vertical"`); a clean print view without the menu, ending with the site title and address
+- **Random page** — a "Page au hasard" link in the nav menu (`random_page`)
 - **Full-text search**, client-side (Fuse.js), no server needed
 - `--check-links` to catch broken wiki links before they 404
 - `--check-assets` to list assets that no page references
@@ -51,6 +52,8 @@ pip install -e .
 ```bash
 logseq-builder ~/my-logseq ~/Sites/my-site
 ```
+
+⚠️ The output directory is **wiped** before every build — point it at a folder that holds nothing but the generated site.
 
 On first run, a `logseq-site-builder.toml` is generated at the root of your Logseq project (pre-filled from `logseq/config.edn`). Edit it to set the title, theme, nav menu, blog, RSS, etc. — see [`logseq-site-builder.example.toml`](logseq-site-builder.example.toml) for every option, documented.
 

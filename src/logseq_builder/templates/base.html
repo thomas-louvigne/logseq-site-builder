@@ -41,6 +41,10 @@
     {% include 'partials/menu.html' %}
     <main class="content">
       {% block content %}{% endblock %}
+      {#- Paper-only credit line: hidden on screen, shown by print.css -#}
+      <footer class="print-footer" hidden>
+        {{ config.title }}{% if config.base_url %} — {{ config.base_url.split('://')[-1] }}{% endif %}
+      </footer>
     </main>
   </div>
   {% include 'partials/footer.html' %}

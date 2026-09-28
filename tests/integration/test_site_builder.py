@@ -82,6 +82,13 @@ class TestSiteBuilder:
         html = (output_dir / "dragons.html").read_text(encoding="utf-8")
         assert '<link rel="stylesheet" href="print.css" media="print">' in html
 
+    def test_print_footer_has_site_title_and_address(self, logseq_dir, output_dir):
+        config = SiteConfig(title="Mon Site", home_slug="accueil", base_url="https://exemple.fr")
+        build(logseq_dir, output_dir, config)
+        html = (output_dir / "dragons.html").read_text(encoding="utf-8")
+        assert '<footer class="print-footer" hidden>' in html
+        assert "Mon Site — exemple.fr" in html
+
     def test_page_has_share_bar_with_print_button(self, logseq_dir, output_dir, config):
         build(logseq_dir, output_dir, config)
         html = (output_dir / "dragons.html").read_text(encoding="utf-8")
@@ -104,6 +111,23 @@ class TestSiteBuilder:
         assert "data-share-print" not in html
         assert "share-bar__separator" not in html
         assert "wa.me" in html
+
+    def test_nav_has_random_page_link(self, logseq_dir, output_dir, config):
+        build(logseq_dir, output_dir, config)
+        html = (output_dir / "dragons.html").read_text(encoding="utf-8")
+        assert "data-random-page" in html
+
+    def test_random_page_link_can_be_switched_off(self, logseq_dir, output_dir):
+        config = SiteConfig(title="Mon Site", home_slug="accueil", random_page=False)
+        build(logseq_dir, output_dir, config)
+        html = (output_dir / "dragons.html").read_text(encoding="utf-8")
+        assert "data-random-page" not in html
+
+    def test_vertical_share_layout_adds_modifier_class(self, logseq_dir, output_dir):
+        config = SiteConfig(title="Mon Site", home_slug="accueil", share_layout="vertical")
+        build(logseq_dir, output_dir, config)
+        html = (output_dir / "dragons.html").read_text(encoding="utf-8")
+        assert 'class="share-bar share-bar--vertical"' in html
 
     def test_share_bar_hidden_when_every_button_is_off(self, logseq_dir, output_dir):
         config = SiteConfig(title="Mon Site", home_slug="accueil", share=dict.fromkeys(SHARE_BUTTONS, False))

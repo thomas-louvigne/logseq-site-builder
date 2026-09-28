@@ -18,6 +18,15 @@
       </a>
     </li>
     {% endif %}
+    {% if config.random_page %}
+    {#- main.js points the href at a random page from the search index -#}
+    <li class="site-nav__item" hidden>
+      <a class="site-nav__link" href="index.html" data-random-page>
+        {{ social_icon('random') }}
+        Page au hasard
+      </a>
+    </li>
+    {% endif %}
   </ul>
 
   <div class="site-nav__search">

@@ -3,7 +3,7 @@
 from collections.abc import Iterable
 from typing import Literal
 
-from ..domain.page import SHARE_BUTTONS, Page, SiteConfig
+from ..domain.page import SHARE_BUTTONS, SHARE_LAYOUTS, Page, ShareLayout, SiteConfig
 from ..domain.paths import slugify
 
 _HOME_CANDIDATE_SLUGS = ["index", "home", "accueil", "readme"]
@@ -26,8 +26,10 @@ def build_site_config(
     socials, social_warnings = _merge_social_links(toml.get("social_networks", {}), social_links)
     warnings += social_warnings
 
-    share, share_warnings = _parse_share(toml.get("share", {}))
-    warnings += share_warnings
+    share_table = dict(toml.get("share", {}))
+    share_layout, layout_warnings = _parse_share_layout(share_table.pop("layout", "horizontal"))
+    share, share_warnings = _parse_share(share_table)
+    warnings += layout_warnings + share_warnings
 
     enable_journals: bool = site.get("enable_journals", False)
     blog_title: str = site.get("blog_title", "Blog")
@@ -56,12 +58,21 @@ def build_site_config(
         blog_slug=blog_slug,
         rss=site.get("rss", False),
         bullet_threading=site.get("bullet_threading", True),
+        random_page=site.get("random_page", True),
         external_static_dirs=[
             entry["path"] for entry in toml.get("external_static_dirs", []) if entry.get("path")
         ],
         share=share,
+        share_layout=share_layout,
     )
     return config, warnings
+
+
+def _parse_share_layout(raw: object) -> tuple[ShareLayout, list[str]]:
+    if raw in SHARE_LAYOUTS:
+        return raw, []  # type: ignore[return-value]
+    expected = " or ".join(f"'{layout}'" for layout in SHARE_LAYOUTS)
+    return "horizontal", [f"ignoring [share] layout '{raw}' (expected {expected})"]
 
 
 def _parse_share(raw: dict) -> tuple[dict[str, bool], list[str]]:

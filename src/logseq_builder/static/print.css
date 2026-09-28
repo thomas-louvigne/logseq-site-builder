@@ -76,6 +76,19 @@ a { color: #000 !important; text-decoration: underline; }
   background-color: var(--color-text-muted) !important;
 }
 
+/* Site title + address under the content, so a printout says where it
+   comes from. Hidden on screen by its `hidden` attribute. */
+.print-footer[hidden] {
+  display: block !important;
+  margin-top: 2rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #bbb;
+  font-size: 9pt;
+  color: #444;
+  text-align: center;
+  break-inside: avoid;
+}
+
 .page-body h1,
 .page-body h2,
 .page-body h3,

@@ -8,6 +8,10 @@ PageFormat = Literal["org", "md"]
 # Buttons of the share bar under each page title, in display order; each one
 # can be switched off from the [share] table of logseq-site-builder.toml.
 SHARE_BUTTONS = ("native", "whatsapp", "facebook", "x", "bluesky", "linkedin", "email", "copy_link", "print")
+# "horizontal": a row under the title; "vertical": a column pinned to the
+# right edge of the screen (falls back to the row on narrow screens).
+ShareLayout = Literal["horizontal", "vertical"]
+SHARE_LAYOUTS: tuple[ShareLayout, ...] = ("horizontal", "vertical")
 
 
 @dataclass
@@ -54,5 +58,7 @@ class SiteConfig:
     rss: bool = False
     lang: str = "en"
     bullet_threading: bool = True
+    random_page: bool = True
     external_static_dirs: list[str] = field(default_factory=list)
     share: dict[str, bool] = field(default_factory=lambda: dict.fromkeys(SHARE_BUTTONS, True))
+    share_layout: ShareLayout = "horizontal"

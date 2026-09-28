@@ -221,6 +221,31 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   background: var(--color-border);
 }
 .share-bar__status { font-size: 0.8125rem; color: var(--color-accent); }
+/* Vertical variant ([share] layout = "vertical"): a column pinned to the
+   right edge of the screen, in the gutter beside the article. Below 1100px
+   that gutter is too narrow to hold it, so it stays the row above. */
+@media (min-width: 1100px) {
+  .share-bar--vertical {
+    position: fixed;
+    top: 50%;
+    right: 1.25rem;
+    z-index: 40;
+    flex-direction: column;
+    margin-top: 0;
+    transform: translateY(-50%);
+  }
+  .share-bar--vertical .share-bar__label { display: none; }
+  .share-bar--vertical .share-bar__list { flex-direction: column; }
+  .share-bar--vertical .share-bar__button { background: var(--color-bg); }
+  .share-bar--vertical .share-bar__separator { width: 1.25rem; height: 1px; margin: 0.25rem 0; }
+  .share-bar--vertical .share-bar__status {
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 0.5rem);
+    transform: translateY(-50%);
+    white-space: nowrap;
+  }
+}
 
 /* ── Blog index ──────────────────────────────────────────── */
 .blog-list { list-style: none; margin-top: 0.5rem; }

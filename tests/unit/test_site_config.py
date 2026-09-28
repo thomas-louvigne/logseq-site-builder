@@ -21,6 +21,29 @@ def test_share_button_can_be_switched_off():
     assert config.share["whatsapp"] is True
 
 
+def test_random_page_link_on_by_default_and_can_be_switched_off():
+    assert _config({})[0].random_page is True
+    assert _config({"site": {"random_page": False}})[0].random_page is False
+
+
+def test_share_layout_defaults_to_horizontal():
+    config, _ = _config({})
+    assert config.share_layout == "horizontal"
+
+
+def test_share_layout_vertical_is_not_taken_for_a_button():
+    config, warnings = _config({"share": {"layout": "vertical"}})
+    assert config.share_layout == "vertical"
+    assert "layout" not in config.share
+    assert warnings == []
+
+
+def test_invalid_share_layout_warns_and_falls_back():
+    config, warnings = _config({"share": {"layout": "diagonal"}})
+    assert config.share_layout == "horizontal"
+    assert len(warnings) == 1 and "diagonal" in warnings[0]
+
+
 def test_unknown_share_key_warns():
     config, warnings = _config({"share": {"myspace": False}})
     assert "myspace" not in config.share

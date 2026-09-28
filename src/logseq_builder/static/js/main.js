@@ -285,6 +285,24 @@
 (function () {
   "use strict";
 
+  // "Page au hasard": pick from the search index (every published page),
+  // skipping the current one, drawn again on every page load. The link stays
+  // hidden when JS or the index is missing. A real href (not a click
+  // handler) keeps middle-click / open-in-new-tab working.
+  const link = document.querySelector("[data-random-page]");
+  const current = location.pathname.split("/").pop() || "index.html";
+  const urls = (window.__SEARCH_DATA__ || [])
+    .map(function (entry) { return entry.url; })
+    .filter(function (url) { return url !== current; });
+  if (!link || !urls.length) return;
+
+  link.href = urls[Math.floor(Math.random() * urls.length)];
+  link.closest("li").hidden = false;
+})();
+
+(function () {
+  "use strict";
+
   // Folded tree-view branches would otherwise be missing from the printout:
   // open them for the print, then fold them back.
   let reopened = [];

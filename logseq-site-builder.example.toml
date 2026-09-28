@@ -77,6 +77,10 @@ journals_directory = "journals"
 # Set to false to fall back to plain nested lists with no lines or folding.
 bullet_threading = true
 
+# "Page au hasard" link at the end of the nav menu: opens a random published
+# page (drawn in the browser from the search index). Set to false to hide it.
+random_page = true
+
 # ── Blog (Logseq journals) ───────────────────────────────────────────────────
 
 # Enable the blog section built from files in the journals/ directory.
@@ -141,6 +145,10 @@ Facebook = "https://facebook.com/your-page"
 # The print button (and Ctrl+P) prints the page alone, without the menu.
 
 [share]
+# "horizontal": a row under the page title (default).
+# "vertical": a column pinned to the right edge of the screen; on screens
+# narrower than 1100px it falls back to the row under the title.
+layout    = "horizontal"
 native    = true   # device share sheet — only shown where supported (mostly mobile)
 whatsapp  = true
 facebook  = true
