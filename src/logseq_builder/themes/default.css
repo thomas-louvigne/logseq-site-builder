@@ -419,6 +419,38 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 .bullet-threading .page-body section.level4 > details:not([open]) > summary::before {
   background-color: var(--tree-collapsed);
 }
+/* Drop line: an open branch draws its own trunk from its marker down to
+   the bottom of its summary. A child's elbow only reaches half a line up,
+   so without this a summary taller than one line (a wrapped bullet, or a
+   big multi-line heading) leaves a gap between the parent's marker and
+   its first child. Only branches with tree children (a nested list or
+   heading section) get one — a heading over a code block or quote has
+   nothing below to connect to. Positioned against the summary (hence position:
+   relative) so `bottom: 0` follows its real height; `left` lands on the
+   same x as the children's trunk (their margin-left pullback, relative to
+   the summary's left edge, which sits at the item's own padding-left).
+   The +/- button is positioned against the summary too, so it's shifted
+   back by that same padding-left to stay on top of the item's dot. */
+.bullet-threading .page-body details > summary {
+  position: relative;
+}
+.bullet-threading .page-body li > details > summary::before,
+.bullet-threading .page-body section.level1 > details > summary::before,
+.bullet-threading .page-body section.level2 > details > summary::before,
+.bullet-threading .page-body section.level3 > details > summary::before,
+.bullet-threading .page-body section.level4 > details > summary::before {
+  left: calc(var(--tree-spacing) - var(--tree-radius) - 1px
+             - (2 * var(--tree-spacing) - var(--tree-radius) - 2px));
+}
+.bullet-threading .page-body li > details[open]:has(> ul, > ol, > section) > summary::after,
+.bullet-threading .page-body section > details[open]:has(> ul, > ol, > section) > summary::after {
+  content: "";
+  position: absolute;
+  top: calc(var(--tree-spacing) / 2 + var(--tree-offset));
+  bottom: 0;
+  left: calc(var(--tree-radius) - var(--tree-spacing));
+  border-left: 2px solid var(--tree-line);
+}
 /* Hover a branch to highlight the guide lines that belong to it. :hover
    bubbles to every ancestor <li>/<section>, so hovering a deep item lights
    up the whole trunk path down to it, not just its own segment. */
@@ -437,6 +469,10 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 .bullet-threading .page-body li:hover > details > summary::before,
 .bullet-threading .page-body section:hover > details > summary::before {
   background-color: var(--tree-line-hover);
+}
+.bullet-threading .page-body li:hover > details > summary::after,
+.bullet-threading .page-body section:hover > details > summary::after {
+  border-left-color: var(--tree-line-hover);
 }
 .page-body blockquote {
   border-left: 3px solid var(--color-accent);
