@@ -8,8 +8,6 @@ Turns a [Logseq](https://logseq.com/) graph into a static website — HTML + CSS
 
 [chroniques-insoumises.com](https://chroniques-insoumises.com/) — a Logseq knowledge base built with the `nord` theme.
 
-![Screenshot of chroniques-insoumises.com](docs/screenshot.png)
-
 ## Themes
 
 ![The default, dark and nord built-in themes, rendered from the sample sites in test-sites/](docs/themes.png)
