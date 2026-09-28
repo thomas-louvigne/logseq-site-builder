@@ -7,10 +7,10 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from ..domain.page import Page, SiteConfig
 from ..ports.interfaces import SiteWriter
+from .themes import DEFAULT_THEME_CSS
 
 _TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 _STATIC_DIR = Path(__file__).parent.parent / "static"
-THEMES_DIR = Path(__file__).parent.parent / "themes"
 
 
 class StaticWriter(SiteWriter):
@@ -29,21 +29,22 @@ class StaticWriter(SiteWriter):
     def _page_url(self, page: Page, config: SiteConfig) -> str:
         return "index.html" if page.slug == config.home_slug else page.output_filename
 
+    def _write(self, filename: str, text: str) -> None:
+        (self._output_dir / filename).write_text(text, encoding="utf-8")
+
+    def _render(self, template_name: str, filename: str, **context: object) -> None:
+        self._write(filename, self._env.get_template(template_name).render(**context))
+
     def write_page(self, page: Page, config: SiteConfig, is_home: bool = False) -> None:
-        template = self._env.get_template("page.html")
-        html = template.render(page=page, config=config, is_home=is_home)
         filename = "index.html" if is_home else page.output_filename
-        (self._output_dir / filename).write_text(html, encoding="utf-8")
+        self._render("page.html", filename, page=page, config=config, is_home=is_home, canonical_path=filename)
 
     def write_blog_index(self, journal_pages: list[Page], config: SiteConfig) -> None:
-        template = self._env.get_template("blog.html")
-        html = template.render(journal_pages=journal_pages, config=config)
-        (self._output_dir / f"{config.blog_slug}.html").write_text(html, encoding="utf-8")
+        filename = f"{config.blog_slug}.html"
+        self._render("blog.html", filename, journal_pages=journal_pages, config=config, canonical_path=filename)
 
     def write_rss(self, journal_pages: list[Page], config: SiteConfig) -> None:
-        template = self._env.get_template("rss.xml")
-        xml = template.render(journal_pages=journal_pages, config=config)
-        (self._output_dir / "feed.xml").write_text(xml, encoding="utf-8")
+        self._render("rss.xml", "feed.xml", journal_pages=journal_pages, config=config)
 
     def copy_assets(self, asset_filenames: list[str], logseq_assets_dir: Path) -> None:
         if not asset_filenames:
@@ -56,9 +57,7 @@ class StaticWriter(SiteWriter):
                 shutil.copy2(src, assets_out / filename)
 
     def write_404(self, config: SiteConfig) -> None:
-        template = self._env.get_template("404.html")
-        html = template.render(config=config)
-        (self._output_dir / "404.html").write_text(html, encoding="utf-8")
+        self._render("404.html", "404.html", config=config)
 
     def copy_pages_subdirs(self, pages_dir: Path, require_web_files: bool = True) -> None:
         if not pages_dir.is_dir():
@@ -82,8 +81,6 @@ class StaticWriter(SiteWriter):
     def write_sitemap(self, pages: list[Page], journal_pages: list[Page], config: SiteConfig) -> None:
         if not config.base_url:
             return
-        template = self._env.get_template("sitemap.xml")
-
         entries = []
         for page in pages:
             is_home = page.slug == config.home_slug
@@ -101,29 +98,26 @@ class StaticWriter(SiteWriter):
                 "priority": "0.6",
             })
 
-        xml = template.render(pages=entries, config=config)
-        (self._output_dir / "sitemap.xml").write_text(xml, encoding="utf-8")
+        self._render("sitemap.xml", "sitemap.xml", pages=entries, config=config)
 
     def write_robots(self, config: SiteConfig) -> None:
         lines = ["User-agent: *", "Allow: /"]
         if config.base_url:
             lines.append(f"Sitemap: {config.base_url}/sitemap.xml")
-        (self._output_dir / "robots.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+        self._write("robots.txt", "\n".join(lines) + "\n")
 
     def write_search_index(self, pages: list[Page], journal_pages: list[Page], config: SiteConfig) -> None:
-        entries = []
-        for page in pages:
-            entries.append({"title": page.title, "url": self._page_url(page, config), "content": _strip_html(page.html_content)})
-        for page in journal_pages:
-            entries.append({"title": page.title, "url": page.output_filename, "content": _strip_html(page.html_content)})
-        js = "window.__SEARCH_DATA__ = " + json.dumps(entries, ensure_ascii=False) + ";"
-        (self._output_dir / "js" / "search.js").write_text(js, encoding="utf-8")
+        entries = [
+            {"title": page.title, "url": self._page_url(page, config), "content": _strip_html(page.html_content)}
+            for page in [*pages, *journal_pages]
+        ]
+        self._write("js/search.js", "window.__SEARCH_DATA__ = " + json.dumps(entries, ensure_ascii=False) + ";")
 
     def write_static_files(self) -> None:
         js_out = self._output_dir / "js"
         js_out.mkdir(parents=True, exist_ok=True)
 
-        css_src = self._theme_css if self._theme_css is not None else THEMES_DIR / "default.css"
+        css_src = self._theme_css if self._theme_css is not None else DEFAULT_THEME_CSS
         if css_src.exists():
             shutil.copy2(css_src, self._output_dir / "style.css")
 

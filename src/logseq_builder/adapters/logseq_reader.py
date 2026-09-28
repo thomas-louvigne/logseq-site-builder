@@ -4,9 +4,9 @@ import urllib.parse
 from pathlib import Path
 from typing import Iterator
 
-from ..domain.page import Page
+from ..domain.page import Page, PageFormat
 from ..ports.interfaces import PageRepository
-from ..services.link_resolver import slugify
+from ..domain.paths import slugify
 from .edn_config_loader import load_edn_config
 
 _PUBLIC_TRUE = re.compile(r"(?:#\+PUBLIC:\s*true|^public::\s*true\b)", re.IGNORECASE | re.MULTILINE)
@@ -16,6 +16,10 @@ _ORG_ICON = re.compile(r"^:icon:\s*(.+)", re.MULTILINE)
 _MD_ICON = re.compile(r"^icon::\s*(.+)", re.IGNORECASE | re.MULTILINE)
 _ORG_HEADING = re.compile(r"^\*+\s+(.+)$", re.MULTILINE)
 _MD_HEADING = re.compile(r"^#+\s+(.+)$", re.MULTILINE)
+
+
+def _page_format(path: Path) -> PageFormat:
+    return "org" if path.suffix == ".org" else "md"
 
 
 def _decode_logseq_filename(stem: str) -> str:
@@ -123,12 +127,14 @@ class LogseqReader(PageRepository):
             return False
         return any(rel == h or rel.startswith(h.rstrip("/") + "/") for h in self._hidden)
 
+    def _source_files(self, directory: Path) -> Iterator[Path]:
+        """Org/markdown files directly under `directory`, minus hidden paths."""
+        for path in directory.iterdir():
+            if path.suffix in (".org", ".md") and not self._is_hidden(path):
+                yield path
+
     def find_all(self) -> Iterator[Page]:
-        for path in sorted(self._pages_dir.iterdir()):
-            if path.suffix not in (".org", ".md"):
-                continue
-            if self._is_hidden(path):
-                continue
+        for path in sorted(self._source_files(self._pages_dir)):
             content = path.read_text(encoding="utf-8")
             is_public = _parse_is_public(content, self._all_public)
             title = _parse_title(content, path.stem)
@@ -138,7 +144,7 @@ class LogseqReader(PageRepository):
                 slug=slug,
                 raw_content=content,
                 source_path=path,
-                format="org" if path.suffix == ".org" else "md",
+                format=_page_format(path),
                 is_public=is_public,
                 description=_parse_description(content),
                 icon=_parse_icon(content),
@@ -149,11 +155,7 @@ class LogseqReader(PageRepository):
         if not self._journals_dir.is_dir():
             return
         pages: list[Page] = []
-        for path in self._journals_dir.iterdir():
-            if path.suffix not in (".org", ".md"):
-                continue
-            if self._is_hidden(path):
-                continue
+        for path in self._source_files(self._journals_dir):
             date = self._parse_date(path.stem)
             if date is None:
                 continue
@@ -161,7 +163,7 @@ class LogseqReader(PageRepository):
             if not _parse_is_public(content, self._all_public):
                 continue
             title = self._format_title(date)
-            fmt = "org" if path.suffix == ".org" else "md"
+            fmt = _page_format(path)
             slug = f"journal-{date.isoformat()}"
             pages.append(Page(
                 title=title,

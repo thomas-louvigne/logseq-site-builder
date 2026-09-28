@@ -3,6 +3,18 @@ from pathlib import Path
 
 _EDN_COMMENT = re.compile(r";[^\n]*")
 
+# TOML [site] key → config.edn key, by value type.
+_EDN_BOOLS = {
+    "all_public": ":publishing/all-pages-public?",
+    "enable_journals": ":feature/enable-journals?",
+}
+_EDN_STRINGS = {
+    "pages_directory": ":pages-directory",
+    "journals_directory": ":journals-directory",
+    "journal_page_title_format": ":journal/page-title-format",
+    "journal_file_name_format": ":journal/file-name-format",
+}
+
 
 def _strip_comments(text: str) -> str:
     return _EDN_COMMENT.sub("", text)
@@ -17,9 +29,15 @@ def load_edn_config(logseq_dir: Path) -> dict:
 
     site: dict = {}
 
-    m = re.search(r":publishing/all-pages-public\?\s+(true|false)", text)
-    if m:
-        site["all_public"] = m.group(1) == "true"
+    for key, edn_key in _EDN_BOOLS.items():
+        m = re.search(rf"{re.escape(edn_key)}\s+(true|false)", text)
+        if m:
+            site[key] = m.group(1) == "true"
+
+    for key, edn_key in _EDN_STRINGS.items():
+        m = re.search(rf'{re.escape(edn_key)}\s+"([^"]+)"', text)
+        if m:
+            site[key] = m.group(1)
 
     m = re.search(r":default-home\s*\{[^}]*:page\s+\"([^\"]+)\"", text)
     if m:
@@ -28,26 +46,6 @@ def load_edn_config(logseq_dir: Path) -> dict:
     m = re.search(r":hidden\s*\[([^\]]*)\]", text, re.DOTALL)
     if m:
         site["hidden"] = re.findall(r'"([^"]*)"', m.group(1))
-
-    m = re.search(r":feature/enable-journals\?\s+(true|false)", text)
-    if m:
-        site["enable_journals"] = m.group(1) == "true"
-
-    m = re.search(r':pages-directory\s+"([^"]+)"', text)
-    if m:
-        site["pages_directory"] = m.group(1)
-
-    m = re.search(r':journals-directory\s+"([^"]+)"', text)
-    if m:
-        site["journals_directory"] = m.group(1)
-
-    m = re.search(r':journal/page-title-format\s+"([^"]+)"', text)
-    if m:
-        site["journal_page_title_format"] = m.group(1)
-
-    m = re.search(r':journal/file-name-format\s+"([^"]+)"', text)
-    if m:
-        site["journal_file_name_format"] = m.group(1)
 
     return {"site": site} if site else {}
 
