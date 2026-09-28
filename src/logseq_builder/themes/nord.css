@@ -406,6 +406,12 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 .bullet-threading .page-body li {
   margin-bottom: 0;
   padding-bottom: 0.15em;
+  /* Same problem at the top: a first child's margin-top (e.g. a block
+     image's 1em) would collapse out through the <li> and its list, pushing
+     the whole list below the elbow's reach. A new formatting context keeps
+     it inside the item. list-style is already none here, so dropping the
+     list-item display loses nothing. */
+  display: flow-root;
 }
 .bullet-threading .page-body section.level1,
 .bullet-threading .page-body section.level2,
