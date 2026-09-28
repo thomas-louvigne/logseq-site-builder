@@ -481,10 +481,24 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 .bullet-threading .page-body details > section {
   border-left: 2px solid var(--tree-line);
 }
-.bullet-threading .page-body details > ul > li:last-child,
-.bullet-threading .page-body details > ol > li:last-child,
+.bullet-threading .page-body details > ul:not(:has(~ section)) > li:last-child,
+.bullet-threading .page-body details > ol:not(:has(~ section)) > li:last-child,
 .bullet-threading .page-body details > section:last-child {
   border-color: transparent;
+}
+/* In org "auto" listify mode a leaf heading becomes a list item while its
+   sibling headings that have sub-headings stay <section>s, so a list can
+   sit between sections of the same level. Its last item isn't the end of
+   the branch then: keep its trunk (above) and move the list's bottom
+   margin into that item's padding, which its border does cover — a margin
+   would leave a gap in the trunk before the next section. */
+.bullet-threading .page-body details > ul:has(~ section),
+.bullet-threading .page-body details > ol:has(~ section) {
+  margin-bottom: 0;
+}
+.bullet-threading .page-body details > ul:has(~ section) > li:last-child,
+.bullet-threading .page-body details > ol:has(~ section) > li:last-child {
+  padding-bottom: 0.75em;
 }
 .bullet-threading .page-body details > ul > li::before,
 .bullet-threading .page-body details > ol > li::before,
