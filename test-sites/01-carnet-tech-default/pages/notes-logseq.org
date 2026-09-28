@@ -1,0 +1,34 @@
+#+TITLE: Notes Logseq
+#+PUBLIC: true
+
+* Structure d'un graphe Logseq
+
+** Pages
+
+Les pages sont stockées dans un dossier =pages/= au format org ou markdown.
+
+** Journaux
+
+Les journaux (=journals/=) servent de blog quand ~enable_journals = true~.
+
+* Exemple de liste imbriquée
+
+- Niveau 1
+  - Niveau 2
+    - Niveau 3
+      - Niveau 4, pour vérifier le fil de la vue arborescente (tree view)
+  - Retour niveau 2
+- Autre branche niveau 1
+
+* Bloc de code
+
+#+BEGIN_SRC python
+def slugify(text):
+    return text.lower().replace(" ", "-")
+#+END_SRC
+
+* Citation
+
+#+BEGIN_QUOTE
+La documentation est un acte d'amour envers son futur soi.
+#+END_QUOTE

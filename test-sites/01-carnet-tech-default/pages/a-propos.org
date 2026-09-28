@@ -1,0 +1,21 @@
+#+TITLE: À propos
+#+PUBLIC: true
+#+DESCRIPTION: Qui je suis et ce que je fais.
+
+* Qui suis-je ?
+
+Développeur full-stack basé à Lyon, passionné de logiciels libres et de jardinage.
+
+* Ce que je publie ici
+
+- Des notes d'apprentissage
+- Des post-mortems de bugs
+- Des recettes de code réutilisables
+
+#+BEGIN_QUOTE
+"Documenter, c'est se souvenir deux fois." — proverbe inventé pour l'occasion
+#+END_QUOTE
+
+* Contact
+
+Retrouvez-moi via les liens sociaux dans le menu, ou consultez mes [[Projets]].

@@ -1,0 +1,9 @@
+#+PUBLIC: true
+
+* Migration vers logseq-site-builder
+
+J'ai migré mon ancien blog statique vers un export direct de mon graphe Logseq. Beaucoup plus simple à maintenir.
+
+#+BEGIN_SRC bash
+logseq-builder ~/mon-graphe ~/Sites/mon-site
+#+END_SRC

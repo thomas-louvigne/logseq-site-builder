@@ -1,0 +1,32 @@
+#+TITLE: Portfolio
+#+PUBLIC: true
+
+* Sites vitrines
+
+** Boulangerie Martin
+
+Site vitrine avec prise de commande en ligne.
+
+** Cabinet d'architectes Voûte
+
+Portfolio visuel avec galerie filtrable.
+
+* Applications internes
+
+** Outil de planning pour une PME
+
+Développé avec Rails et Stimulus.
+
+#+BEGIN_SRC ruby
+class Shift < ApplicationRecord
+  belongs_to :employee
+end
+#+END_SRC
+
+#+BEGIN_QUOTE
+"Le meilleur outil est celui que l'équipe utilise vraiment." — un client satisfait
+#+END_QUOTE
+
+Voir aussi la page [[Tarifs Internes]] (privée : ce lien reste volontairement cassé).
+
+Démo interactive de l'outil : [[file:demo-app/index.html][voir la mini-app en direct]].
