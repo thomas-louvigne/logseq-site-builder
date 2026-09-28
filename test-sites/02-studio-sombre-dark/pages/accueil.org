@@ -1,0 +1,13 @@
+#+TITLE: Accueil
+#+PUBLIC: true
+#+DESCRIPTION: Studio de développement web freelance, thème sombre.
+
+* Studio Sombre
+
+Studio freelance spécialisé en développement web sur-mesure. Découvrez mes [[Services]] et mon [[Portfolio]].
+
+[[../assets/cover.svg]]
+
+* Pourquoi ce thème sombre ?
+
+Parce qu'un développeur qui code la nuit mérite un site qui lui ressemble.

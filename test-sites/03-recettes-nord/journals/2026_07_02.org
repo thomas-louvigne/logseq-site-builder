@@ -1,0 +1,5 @@
+#+PUBLIC: true
+
+* Un été à tester des soupes froides
+
+En attendant l'automne et le retour de la [[Soupe A Loignon]], quelques essais de gaspacho.

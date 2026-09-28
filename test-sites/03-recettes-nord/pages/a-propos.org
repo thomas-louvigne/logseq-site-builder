@@ -1,0 +1,10 @@
+#+TITLE: À propos
+#+PUBLIC: true
+
+* Qui cuisine ici ?
+
+Léa, originaire de Lille, transmet ici les recettes de famille.
+
+* Une recette pas encore prête
+
+Voir [[Brouillon Recette Secrete]] — page privée, ne doit pas être publiée (lien volontairement cassé pour test).

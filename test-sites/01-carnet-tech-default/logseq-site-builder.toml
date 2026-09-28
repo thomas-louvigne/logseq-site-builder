@@ -1,0 +1,42 @@
+[site]
+
+title       = "Carnet Tech"
+author      = "Camille Dupont"
+description = "Notes techniques et retours d'expérience, publiés depuis Logseq."
+base_url    = "https://carnet-tech.example.com"
+lang        = "fr"
+
+home_page = "accueil"
+all_public = false
+
+org_listify_headings_from = 3
+
+pages_directory    = "pages"
+journals_directory = "journals"
+
+# theme = "default" (thème par défaut, laissé implicite)
+bullet_threading = true
+
+enable_journals = true
+blog_title = "Journal"
+blog_slug  = "journal"
+journal_page_title_format = "dd-MM-yyyy"
+journal_file_name_format  = "yyyy_MM_dd"
+rss = true
+
+[[menu]]
+label = "Accueil"
+slug  = "accueil"
+
+[[menu]]
+label = "Projets"
+slug  = "projets"
+
+[[menu]]
+label = "À propos"
+slug  = "a-propos"
+
+[social_networks]
+GitHub   = "https://github.com/camille-dupont"
+Mastodon = "https://mastodon.social/@camille"
+RSS      = "feed.xml"

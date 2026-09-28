@@ -1,0 +1,45 @@
+[site]
+
+title       = "Studio Sombre"
+author      = "Alex Faure"
+description = "Portfolio et carnet de bord — développement web freelance."
+base_url    = "https://studio-sombre.example.com"
+lang        = "fr"
+
+home_page = "accueil"
+all_public = false
+
+pages_directory    = "pages"
+journals_directory = "journals"
+
+theme = "dark"
+# Vitrine du mode sans arborescence : pas de lignes ni de pliage, listes imbriquées classiques.
+bullet_threading = false
+
+enable_journals = true
+blog_title = "Actus"
+blog_slug  = "actus"
+journal_page_title_format = "MMM do, yyyy"
+journal_file_name_format  = "yyyy_MM_dd"
+rss = true
+
+[[menu]]
+label = "Accueil"
+slug  = "accueil"
+
+[[menu]]
+label = "Services"
+slug  = "services"
+
+[[menu]]
+label = "Portfolio"
+slug  = "portfolio"
+
+[[menu]]
+label = "Contact"
+slug  = "contact"
+
+[social_networks]
+GitHub    = "https://github.com/alex-faure"
+LinkedIn  = "https://linkedin.com/in/alex-faure"
+Instagram = "https://instagram.com/studiosombre"

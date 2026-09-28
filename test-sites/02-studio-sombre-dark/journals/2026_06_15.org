@@ -1,0 +1,5 @@
+#+PUBLIC: true
+
+* Nouveau site en ligne pour Boulangerie Martin
+
+Livraison du site vitrine avec prise de commande en ligne. Voir le [[Portfolio]].

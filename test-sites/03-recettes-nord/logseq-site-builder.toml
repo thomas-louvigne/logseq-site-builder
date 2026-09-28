@@ -1,0 +1,42 @@
+[site]
+
+title       = "Recettes du Nord"
+author      = "Léa Verhaeghe"
+description = "Carnet de recettes régionales, thème Nord."
+base_url    = "https://recettes-du-nord.example.com"
+lang        = "fr"
+
+home_page = "accueil"
+all_public = false
+
+org_listify_headings_from = 4
+
+pages_directory    = "pages"
+journals_directory = "journals"
+
+theme = "nord"
+bullet_threading = true
+
+enable_journals = true
+blog_title = "Carnet"
+blog_slug  = "carnet"
+journal_page_title_format = "EEEE dd MMMM yyyy"
+journal_file_name_format  = "yyyy_MM_dd"
+rss = true
+
+[[menu]]
+label = "Accueil"
+slug  = "accueil"
+
+[[menu]]
+label = "Recettes"
+slug  = "recettes"
+
+[[menu]]
+label = "À propos"
+slug  = "a-propos"
+
+[social_networks]
+Instagram = "https://instagram.com/recettesdunord"
+YouTube   = "https://youtube.com/@recettesdunord"
+RSS       = "feed.xml"

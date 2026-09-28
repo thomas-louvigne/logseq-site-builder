@@ -1,0 +1,37 @@
+#+TITLE: Tarte aux pommes
+#+PUBLIC: true
+#+DESCRIPTION: La recette familiale de tarte aux pommes.
+
+* Ingrédients
+
+- 1 pâte brisée
+- 4 pommes
+- 2 œufs
+- 20 cl de crème fraîche
+- 80 g de sucre
+
+* Étapes
+
+** Préparer la pâte
+
+Foncer un moule avec la pâte brisée.
+
+** Préparer les pommes
+
+Éplucher et couper les pommes en lamelles fines.
+
+** Cuisson
+
+Enfourner 35 minutes à 180°C.
+
+#+BEGIN_QUOTE
+"Une bonne tarte, c'est une pâte fine et des pommes généreuses." — Mamie Verhaeghe
+#+END_QUOTE
+
+* Astuce de dernière minute
+
+#+BEGIN_SRC text
+Si la pâte gonfle, piquez-la à la fourchette avant cuisson.
+#+END_SRC
+
+Voir aussi [[Soupe A Loignon][la soupe à l'oignon]].
