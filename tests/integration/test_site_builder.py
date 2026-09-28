@@ -112,16 +112,23 @@ class TestSiteBuilder:
         assert "share-bar__separator" not in html
         assert "wa.me" in html
 
-    def test_nav_has_random_page_link(self, logseq_dir, output_dir, config):
+    def test_random_menu_entry_renders_labelled_random_link(self, logseq_dir, output_dir):
+        menu = [{"label": "Accueil", "slug": "accueil"}, {"label": "Au pif", "random": True}]
+        config = SiteConfig(title="Mon Site", home_slug="accueil", menu=menu)
         build(logseq_dir, output_dir, config)
         html = (output_dir / "dragons.html").read_text(encoding="utf-8")
         assert "data-random-page" in html
+        assert "Au pif" in html
 
-    def test_random_page_link_can_be_switched_off(self, logseq_dir, output_dir):
-        config = SiteConfig(title="Mon Site", home_slug="accueil", random_page=False)
+    def test_no_random_link_without_random_menu_entry(self, logseq_dir, output_dir, config):
         build(logseq_dir, output_dir, config)
         html = (output_dir / "dragons.html").read_text(encoding="utf-8")
         assert "data-random-page" not in html
+
+    def test_tree_view_sets_body_class(self, logseq_dir, output_dir, config):
+        build(logseq_dir, output_dir, config)
+        html = (output_dir / "dragons.html").read_text(encoding="utf-8")
+        assert '<body class="tree-view">' in html
 
     def test_vertical_share_layout_adds_modifier_class(self, logseq_dir, output_dir):
         config = SiteConfig(title="Mon Site", home_slug="accueil", share_layout="vertical")

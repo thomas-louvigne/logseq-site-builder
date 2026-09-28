@@ -22,7 +22,7 @@ all_public = false
 
 # Org-mode only (Markdown pages are unaffected). Controls whether/how deep
 # `*` headings are rendered as plain nested bullet lists instead of heading
-# sections — same bullet threading as any other nested block, just no more
+# sections — same tree-view lines as any other nested block, just no more
 # <h2>/<h3> styling.
 #
 # Default is "auto": per org page, the deepest `*` level actually used on
@@ -75,11 +75,8 @@ journals_directory = "journals"
 # with a click-to-collapse button on every branch (style inspired by
 # https://iamkate.com/code/tree-views/). Applies to all built-in themes.
 # Set to false to fall back to plain nested lists with no lines or folding.
-bullet_threading = true
-
-# "Page au hasard" link at the end of the nav menu: opens a random published
-# page (drawn in the browser from the search index). Set to false to hide it.
-random_page = true
+# (Formerly `bullet_threading`, still accepted with a warning.)
+tree_view = true
 
 # ── Blog (Logseq journals) ───────────────────────────────────────────────────
 
@@ -112,6 +109,13 @@ rss = false
 # slug (filename without .html).
 # When enable_journals = true, a blog entry is added automatically if the
 # blog_slug is not already present here.
+#
+# An entry with `random = true` (and no slug) is a link to a random published
+# page, drawn in the browser from the search index — name it with `label`:
+#
+# [[menu]]
+# label  = "Page au hasard"
+# random = true
 
 [[menu]]
 label = "Home"

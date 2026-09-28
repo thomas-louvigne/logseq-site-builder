@@ -21,9 +21,15 @@ def test_share_button_can_be_switched_off():
     assert config.share["whatsapp"] is True
 
 
-def test_random_page_link_on_by_default_and_can_be_switched_off():
-    assert _config({})[0].random_page is True
-    assert _config({"site": {"random_page": False}})[0].random_page is False
+def test_tree_view_on_by_default_and_can_be_switched_off():
+    assert _config({})[0].tree_view is True
+    assert _config({"site": {"tree_view": False}})[0].tree_view is False
+
+
+def test_legacy_bullet_threading_still_works_with_a_warning():
+    config, warnings = _config({"site": {"bullet_threading": False}})
+    assert config.tree_view is False
+    assert len(warnings) == 1 and "tree_view" in warnings[0]
 
 
 def test_share_layout_defaults_to_horizontal():

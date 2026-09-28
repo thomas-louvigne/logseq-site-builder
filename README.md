@@ -12,7 +12,7 @@ Turns a [Logseq](https://logseq.com/) graph into a static website — HTML + CSS
 
 ![The default, dark and nord built-in themes, rendered from the sample sites in test-sites/](docs/themes.png)
 
-Three built-in themes — `default`, `dark` and `nord` — or bring your own CSS. The optional **tree view** (`bullet_threading = true`, shown on `default` and `nord` above) draws guide lines between nested bullets and makes every branch foldable; turn it off for classic bullets (`dark` above). Every page also gets a **share & print bar** under its title (or pinned to the right edge with `layout = "vertical"`); each button can be switched off from the `[share]` table of the TOML.
+Three built-in themes — `default`, `dark` and `nord` — or bring your own CSS. The optional **tree view** (`tree_view = true`, shown on `default` and `nord` above) draws guide lines between nested bullets and makes every branch foldable; turn it off for classic bullets (`dark` above). Every page also gets a **share & print bar** under its title (or pinned to the right edge with `layout = "vertical"`); each button can be switched off from the `[share]` table of the TOML.
 
 ## Features
 
@@ -26,7 +26,7 @@ Three built-in themes — `default`, `dark` and `nord` — or bring your own CSS
 - **Custom HTML/CSS pages** copied as-is (embeds, mini-apps, slide decks…)
 - **External static sites** — copy in mini-sites that live outside the project (`[[external_static_dirs]]`)
 - **Share & print** — share buttons on every page (WhatsApp, Facebook, X, Bluesky, LinkedIn, e-mail, copy link, native share sheet on mobile), each one switchable in `[share]`, as a row under the title or a vertical column on the right (`layout = "vertical"`); a clean print view without the menu, ending with the site title and address
-- **Random page** — a "Page au hasard" link in the nav menu (`random_page`)
+- **Random page** — a nav menu entry with `random = true` links to a random published page, under the `label` you give it
 - **Full-text search**, client-side (Fuse.js), no server needed
 - `--check-links` to catch broken wiki links before they 404
 - `--check-assets` to list assets that no page references

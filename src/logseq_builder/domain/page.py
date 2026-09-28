@@ -42,7 +42,7 @@ class SiteConfig:
     base_url: str = ""
     social_links: dict[str, str] = field(default_factory=dict)
     home_slug: str = "index"
-    menu: list[dict[str, str]] = field(default_factory=list)
+    menu: list[dict[str, str | bool]] = field(default_factory=list)
     org_listify_headings_from: int | Literal["auto"] | None = "auto"
     # From config.edn
     all_public: bool = False
@@ -57,8 +57,7 @@ class SiteConfig:
     blog_slug: str = "blog"
     rss: bool = False
     lang: str = "en"
-    bullet_threading: bool = True
-    random_page: bool = True
+    tree_view: bool = True
     external_static_dirs: list[str] = field(default_factory=list)
     share: dict[str, bool] = field(default_factory=lambda: dict.fromkeys(SHARE_BUTTONS, True))
     share_layout: ShareLayout = "horizontal"

@@ -71,7 +71,7 @@ a { color: #000 !important; text-decoration: underline; }
 .page-body th { background: #eee !important; }
 
 /* Tree view: keep the guide lines, drop the +/- fold buttons. */
-.bullet-threading .page-body details > summary::before {
+.tree-view .page-body details > summary::before {
   background-image: none !important;
   background-color: var(--color-text-muted) !important;
 }

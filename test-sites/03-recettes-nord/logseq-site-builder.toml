@@ -15,7 +15,7 @@ pages_directory    = "pages"
 journals_directory = "journals"
 
 theme = "nord"
-bullet_threading = true
+tree_view = true
 
 enable_journals = true
 blog_title = "Carnet"
@@ -35,6 +35,10 @@ slug  = "recettes"
 [[menu]]
 label = "À propos"
 slug  = "a-propos"
+
+[[menu]]
+label  = "Une recette au hasard"
+random = true
 
 [social_networks]
 Instagram = "https://instagram.com/recettesdunord"

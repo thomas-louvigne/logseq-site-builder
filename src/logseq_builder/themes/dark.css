@@ -300,11 +300,11 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 }
 .page-body li { margin-bottom: 0.15em; }
 
-/* Bullet threading — tree view. Guide lines + circular expand/collapse
+/* Tree view. Guide lines + circular expand/collapse
    markers connecting a parent bullet to its nested children, styled after
    https://iamkate.com/code/tree-views/ (colors swapped for the theme's own
-   palette). Feature-flagged: toggled by `bullet_threading` in
-   logseq-site-builder.toml, which adds/removes the .bullet-threading class
+   palette). Feature-flagged: toggled by `tree_view` in
+   logseq-site-builder.toml, which adds/removes the .tree-view class
    on <body> and switches on the <details>/<summary> wrapping that makes
    each branch foldable.
 
@@ -317,7 +317,7 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
    nested heading section — anything that sits directly inside a <details>
    is "nested" and gets a trunk; anything at the top of .page-body (or
    directly inside a level1 heading) is a root and doesn't. */
-.bullet-threading .page-body {
+.tree-view .page-body {
   --tree-spacing: 1.25rem;
   --tree-radius: 0.3125rem;
   --tree-offset: 2px; /* nudges the marker + elbow down to sit centered on the text */
@@ -326,15 +326,15 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
   --tree-collapsed: var(--color-accent);
   --tree-expand-icon: url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2732%27%20height=%2716%27%3E%3Cg%20fill=%27%23fff%27%3E%3Cpath%20d=%27m4%207.2h3.2v-3.2h1.6v3.2h3.2v1.6h-3.2v3.2h-1.6v-3.2h-3.2z%27/%3E%3Cpath%20d=%27m20%207.2h8v1.6h-8z%27/%3E%3C/g%3E%3C/svg%3E");
 }
-.bullet-threading .page-body ul,
-.bullet-threading .page-body ol {
+.tree-view .page-body ul,
+.tree-view .page-body ol {
   list-style: none;
 }
-.bullet-threading .page-body li,
-.bullet-threading .page-body section.level1,
-.bullet-threading .page-body section.level2,
-.bullet-threading .page-body section.level3,
-.bullet-threading .page-body section.level4 {
+.tree-view .page-body li,
+.tree-view .page-body section.level1,
+.tree-view .page-body section.level2,
+.tree-view .page-body section.level3,
+.tree-view .page-body section.level4 {
   position: relative;
   padding-left: calc(2 * var(--tree-spacing) - var(--tree-radius) - 2px);
 }
@@ -344,7 +344,7 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
    right at that boundary. Padding never collapses, so redirecting the
    spacing that used to live in margins into padding here keeps every trunk
    segment touching the next, with no visible break. */
-.bullet-threading .page-body li {
+.tree-view .page-body li {
   margin-bottom: 0;
   padding-bottom: 0.15em;
   /* Same problem at the top: a first child's margin-top (e.g. a block
@@ -354,59 +354,59 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
      list-item display loses nothing. */
   display: flow-root;
 }
-.bullet-threading .page-body section.level1,
-.bullet-threading .page-body section.level2,
-.bullet-threading .page-body section.level3,
-.bullet-threading .page-body section.level4 {
+.tree-view .page-body section.level1,
+.tree-view .page-body section.level2,
+.tree-view .page-body section.level3,
+.tree-view .page-body section.level4 {
   padding-bottom: 0.15em;
 }
-.bullet-threading .page-body section.level1 > h1,
-.bullet-threading .page-body section.level1 > details > summary > h1,
-.bullet-threading .page-body section.level2 > h2,
-.bullet-threading .page-body section.level2 > details > summary > h2,
-.bullet-threading .page-body section.level3 > h3,
-.bullet-threading .page-body section.level3 > details > summary > h3,
-.bullet-threading .page-body section.level4 > h4,
-.bullet-threading .page-body section.level4 > details > summary > h4 {
+.tree-view .page-body section.level1 > h1,
+.tree-view .page-body section.level1 > details > summary > h1,
+.tree-view .page-body section.level2 > h2,
+.tree-view .page-body section.level2 > details > summary > h2,
+.tree-view .page-body section.level3 > h3,
+.tree-view .page-body section.level3 > details > summary > h3,
+.tree-view .page-body section.level4 > h4,
+.tree-view .page-body section.level4 > details > summary > h4 {
   margin: 0;
 }
-.bullet-threading .page-body details > summary {
+.tree-view .page-body details > summary {
   display: block;
   cursor: pointer;
 }
-.bullet-threading .page-body details > summary::-webkit-details-marker {
+.tree-view .page-body details > summary::-webkit-details-marker {
   display: none;
 }
-.bullet-threading .page-body details > summary::marker {
+.tree-view .page-body details > summary::marker {
   content: "";
 }
-.bullet-threading .page-body details > summary:focus {
+.tree-view .page-body details > summary:focus {
   outline: none;
 }
-.bullet-threading .page-body details > summary:focus-visible {
+.tree-view .page-body details > summary:focus-visible {
   outline: 1px dotted var(--tree-line);
 }
 /* Only the page's own outermost list is a "root" — no incoming trunk to
    compensate for, so no pullback. A level1 heading is itself the root of
    its own branch (like a top-level <li>), not a container, so its children
    use the exact same nested formula as everything else below. */
-.bullet-threading .page-body > ul,
-.bullet-threading .page-body > ol {
+.tree-view .page-body > ul,
+.tree-view .page-body > ol {
   padding-left: 1.25rem;
 }
 /* Nested lists pull back (and drop their own padding) so their children's
    dots realign under the parent's dot — same math as the old `li > ul`
    nesting formula, whether the parent is a <li> or a heading <section>. */
-.bullet-threading .page-body li > details > ul,
-.bullet-threading .page-body li > details > ol,
-.bullet-threading .page-body section.level1 > details > ul,
-.bullet-threading .page-body section.level1 > details > ol,
-.bullet-threading .page-body section.level2 > details > ul,
-.bullet-threading .page-body section.level2 > details > ol,
-.bullet-threading .page-body section.level3 > details > ul,
-.bullet-threading .page-body section.level3 > details > ol,
-.bullet-threading .page-body section.level4 > details > ul,
-.bullet-threading .page-body section.level4 > details > ol {
+.tree-view .page-body li > details > ul,
+.tree-view .page-body li > details > ol,
+.tree-view .page-body section.level1 > details > ul,
+.tree-view .page-body section.level1 > details > ol,
+.tree-view .page-body section.level2 > details > ul,
+.tree-view .page-body section.level2 > details > ol,
+.tree-view .page-body section.level3 > details > ul,
+.tree-view .page-body section.level3 > details > ol,
+.tree-view .page-body section.level4 > details > ul,
+.tree-view .page-body section.level4 > details > ol {
   margin-left: calc(var(--tree-radius) - var(--tree-spacing));
   padding-left: 0;
 }
@@ -414,23 +414,23 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
    stays the item's own universal marker gutter, set above; it lives in the
    same <details> as this node's own <summary>, so zeroing it here would
    collapse THIS node's own text gutter, not just its children's). */
-.bullet-threading .page-body section.level1 > details > section.level2,
-.bullet-threading .page-body section.level2 > details > section.level3,
-.bullet-threading .page-body section.level3 > details > section.level4 {
+.tree-view .page-body section.level1 > details > section.level2,
+.tree-view .page-body section.level2 > details > section.level3,
+.tree-view .page-body section.level3 > details > section.level4 {
   margin-left: calc(var(--tree-radius) - var(--tree-spacing));
 }
 /* Trunk + elbow: any <li> or <section> sitting directly inside a <details>
    is a nested branch and gets a line up to its parent's trunk. Covers plain
    nested lists, nested heading sections, and a list that starts directly
    inside a heading section, all in one rule. */
-.bullet-threading .page-body details > ul > li,
-.bullet-threading .page-body details > ol > li,
-.bullet-threading .page-body details > section {
+.tree-view .page-body details > ul > li,
+.tree-view .page-body details > ol > li,
+.tree-view .page-body details > section {
   border-left: 2px solid var(--tree-line);
 }
-.bullet-threading .page-body details > ul:not(:has(~ section)) > li:last-child,
-.bullet-threading .page-body details > ol:not(:has(~ section)) > li:last-child,
-.bullet-threading .page-body details > section:last-child {
+.tree-view .page-body details > ul:not(:has(~ section)) > li:last-child,
+.tree-view .page-body details > ol:not(:has(~ section)) > li:last-child,
+.tree-view .page-body details > section:last-child {
   border-color: transparent;
 }
 /* In org "auto" listify mode a leaf heading becomes a list item while its
@@ -439,17 +439,17 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
    the branch then: keep its trunk (above) and move the list's bottom
    margin into that item's padding, which its border does cover — a margin
    would leave a gap in the trunk before the next section. */
-.bullet-threading .page-body details > ul:has(~ section),
-.bullet-threading .page-body details > ol:has(~ section) {
+.tree-view .page-body details > ul:has(~ section),
+.tree-view .page-body details > ol:has(~ section) {
   margin-bottom: 0;
 }
-.bullet-threading .page-body details > ul:has(~ section) > li:last-child,
-.bullet-threading .page-body details > ol:has(~ section) > li:last-child {
+.tree-view .page-body details > ul:has(~ section) > li:last-child,
+.tree-view .page-body details > ol:has(~ section) > li:last-child {
   padding-bottom: 0.75em;
 }
-.bullet-threading .page-body details > ul > li::before,
-.bullet-threading .page-body details > ol > li::before,
-.bullet-threading .page-body details > section::before {
+.tree-view .page-body details > ul > li::before,
+.tree-view .page-body details > ol > li::before,
+.tree-view .page-body details > section::before {
   content: "";
   display: block;
   position: absolute;
@@ -463,16 +463,16 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 /* Marker: a plain dot on leaves, a clickable +/- button on branches. Both
    share the same position so the button (bigger, opaque, z-index above)
    simply covers the dot when a node has one. */
-.bullet-threading .page-body li::after,
-.bullet-threading .page-body section.level1::after,
-.bullet-threading .page-body section.level2::after,
-.bullet-threading .page-body section.level3::after,
-.bullet-threading .page-body section.level4::after,
-.bullet-threading .page-body li > details > summary::before,
-.bullet-threading .page-body section.level1 > details > summary::before,
-.bullet-threading .page-body section.level2 > details > summary::before,
-.bullet-threading .page-body section.level3 > details > summary::before,
-.bullet-threading .page-body section.level4 > details > summary::before {
+.tree-view .page-body li::after,
+.tree-view .page-body section.level1::after,
+.tree-view .page-body section.level2::after,
+.tree-view .page-body section.level3::after,
+.tree-view .page-body section.level4::after,
+.tree-view .page-body li > details > summary::before,
+.tree-view .page-body section.level1 > details > summary::before,
+.tree-view .page-body section.level2 > details > summary::before,
+.tree-view .page-body section.level3 > details > summary::before,
+.tree-view .page-body section.level4 > details > summary::before {
   content: "";
   display: block;
   position: absolute;
@@ -486,34 +486,34 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 /* level1 headings are bigger (larger line-height) than everything else in
    the tree, so the same offset that centers a level2/li marker sits a
    couple pixels high against an h1's taller first line — nudge it further. */
-.bullet-threading .page-body section.level1::after,
-.bullet-threading .page-body section.level1 > details > summary::before {
+.tree-view .page-body section.level1::after,
+.tree-view .page-body section.level1 > details > summary::before {
   top: calc(var(--tree-spacing) / 2 - var(--tree-radius) + var(--tree-offset) + 2px);
 }
-.bullet-threading .page-body li > details > summary::before,
-.bullet-threading .page-body section.level1 > details > summary::before,
-.bullet-threading .page-body section.level2 > details > summary::before,
-.bullet-threading .page-body section.level3 > details > summary::before,
-.bullet-threading .page-body section.level4 > details > summary::before {
+.tree-view .page-body li > details > summary::before,
+.tree-view .page-body section.level1 > details > summary::before,
+.tree-view .page-body section.level2 > details > summary::before,
+.tree-view .page-body section.level3 > details > summary::before,
+.tree-view .page-body section.level4 > details > summary::before {
   z-index: 1;
   background-image: var(--tree-expand-icon);
   background-repeat: no-repeat;
   background-position: 0 0;
 }
-.bullet-threading .page-body li > details[open] > summary::before,
-.bullet-threading .page-body section.level1 > details[open] > summary::before,
-.bullet-threading .page-body section.level2 > details[open] > summary::before,
-.bullet-threading .page-body section.level3 > details[open] > summary::before,
-.bullet-threading .page-body section.level4 > details[open] > summary::before {
+.tree-view .page-body li > details[open] > summary::before,
+.tree-view .page-body section.level1 > details[open] > summary::before,
+.tree-view .page-body section.level2 > details[open] > summary::before,
+.tree-view .page-body section.level3 > details[open] > summary::before,
+.tree-view .page-body section.level4 > details[open] > summary::before {
   background-position: -1rem 0;
 }
 /* A collapsed branch hides content, so its button gets a colored marker —
    otherwise a folded list looks identical to an empty leaf from a glance. */
-.bullet-threading .page-body li > details:not([open]) > summary::before,
-.bullet-threading .page-body section.level1 > details:not([open]) > summary::before,
-.bullet-threading .page-body section.level2 > details:not([open]) > summary::before,
-.bullet-threading .page-body section.level3 > details:not([open]) > summary::before,
-.bullet-threading .page-body section.level4 > details:not([open]) > summary::before {
+.tree-view .page-body li > details:not([open]) > summary::before,
+.tree-view .page-body section.level1 > details:not([open]) > summary::before,
+.tree-view .page-body section.level2 > details:not([open]) > summary::before,
+.tree-view .page-body section.level3 > details:not([open]) > summary::before,
+.tree-view .page-body section.level4 > details:not([open]) > summary::before {
   background-color: var(--tree-collapsed);
 }
 /* Drop line: an open branch draws its own trunk from its marker down to
@@ -528,19 +528,19 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
    the summary's left edge, which sits at the item's own padding-left).
    The +/- button is positioned against the summary too, so it's shifted
    back by that same padding-left to stay on top of the item's dot. */
-.bullet-threading .page-body details > summary {
+.tree-view .page-body details > summary {
   position: relative;
 }
-.bullet-threading .page-body li > details > summary::before,
-.bullet-threading .page-body section.level1 > details > summary::before,
-.bullet-threading .page-body section.level2 > details > summary::before,
-.bullet-threading .page-body section.level3 > details > summary::before,
-.bullet-threading .page-body section.level4 > details > summary::before {
+.tree-view .page-body li > details > summary::before,
+.tree-view .page-body section.level1 > details > summary::before,
+.tree-view .page-body section.level2 > details > summary::before,
+.tree-view .page-body section.level3 > details > summary::before,
+.tree-view .page-body section.level4 > details > summary::before {
   left: calc(var(--tree-spacing) - var(--tree-radius) - 1px
              - (2 * var(--tree-spacing) - var(--tree-radius) - 2px));
 }
-.bullet-threading .page-body li > details[open]:has(> ul, > ol, > section) > summary::after,
-.bullet-threading .page-body section > details[open]:has(> ul, > ol, > section) > summary::after {
+.tree-view .page-body li > details[open]:has(> ul, > ol, > section) > summary::after,
+.tree-view .page-body section > details[open]:has(> ul, > ol, > section) > summary::after {
   content: "";
   position: absolute;
   top: calc(var(--tree-spacing) / 2 + var(--tree-offset));
@@ -551,24 +551,24 @@ a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 /* Hover a branch to highlight the guide lines that belong to it. :hover
    bubbles to every ancestor <li>/<section>, so hovering a deep item lights
    up the whole trunk path down to it, not just its own segment. */
-.bullet-threading .page-body li:hover,
-.bullet-threading .page-body section:hover {
+.tree-view .page-body li:hover,
+.tree-view .page-body section:hover {
   border-left-color: var(--tree-line-hover);
 }
-.bullet-threading .page-body li:hover::before,
-.bullet-threading .page-body section:hover::before {
+.tree-view .page-body li:hover::before,
+.tree-view .page-body section:hover::before {
   border-color: var(--tree-line-hover);
 }
-.bullet-threading .page-body li:hover::after,
-.bullet-threading .page-body section:hover::after {
+.tree-view .page-body li:hover::after,
+.tree-view .page-body section:hover::after {
   background-color: var(--tree-line-hover);
 }
-.bullet-threading .page-body li:hover > details > summary::before,
-.bullet-threading .page-body section:hover > details > summary::before {
+.tree-view .page-body li:hover > details > summary::before,
+.tree-view .page-body section:hover > details > summary::before {
   background-color: var(--tree-line-hover);
 }
-.bullet-threading .page-body li:hover > details > summary::after,
-.bullet-threading .page-body section:hover > details > summary::after {
+.tree-view .page-body li:hover > details > summary::after,
+.tree-view .page-body section:hover > details > summary::after {
   border-left-color: var(--tree-line-hover);
 }
 .page-body blockquote {

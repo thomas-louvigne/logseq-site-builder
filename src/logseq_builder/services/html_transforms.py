@@ -19,7 +19,7 @@ def postprocess(html: str, fmt: PageFormat, config: SiteConfig) -> str:
             html = auto_listify(html)
         else:
             html = sections_to_lists(html, config.org_listify_headings_from)
-    if config.bullet_threading:
+    if config.tree_view:
         html = add_collapsible_tree(html)
     return add_download_to_asset_links(html)
 
@@ -141,8 +141,8 @@ def _at_least_level(from_level: int) -> Callable[[object], bool]:
 def sections_to_lists(html: str, from_level: int) -> str:
     """Render org headings (`*` level >= from_level) as plain nested bullet
     lists instead of Pandoc's <section class="levelN"> heading structure, so
-    they get normal bullet threading like any other nested block rather than
-    the separate heading-section threading rules. Driven by the
+    they get the normal tree-view lines like any other nested block rather than
+    the separate heading-section tree rules. Driven by the
     `org_listify_headings_from` config, which only applies to org pages."""
     soup = BeautifulSoup(html, "html.parser")
     _sections_to_lists_in(soup, soup, _at_least_level(from_level))
@@ -263,8 +263,8 @@ def _make_collapsible_section(soup: BeautifulSoup, section: Tag) -> None:
 
 def add_collapsible_tree(html: str) -> str:
     """Wrap every branch of the outline (list items and heading sections that
-    have nested content) in a native <details>/<summary>, giving the tree-view
-    bullet threading a click-to-collapse button on top of its guide lines."""
+    have nested content) in a native <details>/<summary>, giving the tree view
+    a click-to-collapse button on top of its guide lines."""
     soup = BeautifulSoup(html, "html.parser")
     _make_collapsible(soup, soup)
     return str(soup)

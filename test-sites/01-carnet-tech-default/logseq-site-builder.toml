@@ -15,7 +15,7 @@ pages_directory    = "pages"
 journals_directory = "journals"
 
 # theme = "default" (thème par défaut, laissé implicite)
-bullet_threading = true
+tree_view = true
 
 enable_journals = true
 blog_title = "Journal"

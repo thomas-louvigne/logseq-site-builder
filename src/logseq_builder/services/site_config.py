@@ -31,10 +31,14 @@ def build_site_config(
     share, share_warnings = _parse_share(share_table)
     warnings += layout_warnings + share_warnings
 
+    tree_view: bool = site.get("tree_view", site.get("bullet_threading", True))
+    if "bullet_threading" in site:
+        warnings.append("[site] bullet_threading is deprecated, rename it to tree_view")
+
     enable_journals: bool = site.get("enable_journals", False)
     blog_title: str = site.get("blog_title", "Blog")
     blog_slug: str = site.get("blog_slug", "blog")
-    menu: list[dict[str, str]] = toml.get("menu", [])
+    menu: list[dict[str, str | bool]] = toml.get("menu", [])
     if enable_journals and not any(item.get("slug") == blog_slug for item in menu):
         menu = list(menu) + [{"label": blog_title, "slug": blog_slug}]
 
@@ -57,8 +61,7 @@ def build_site_config(
         blog_title=blog_title,
         blog_slug=blog_slug,
         rss=site.get("rss", False),
-        bullet_threading=site.get("bullet_threading", True),
-        random_page=site.get("random_page", True),
+        tree_view=tree_view,
         external_static_dirs=[
             entry["path"] for entry in toml.get("external_static_dirs", []) if entry.get("path")
         ],

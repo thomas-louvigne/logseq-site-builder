@@ -14,7 +14,7 @@ journals_directory = "journals"
 
 theme = "dark"
 # Vitrine du mode sans arborescence : pas de lignes ni de pliage, listes imbriquées classiques.
-bullet_threading = false
+tree_view = false
 
 enable_journals = true
 blog_title = "Actus"

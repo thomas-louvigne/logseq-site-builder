@@ -96,7 +96,7 @@ def generate_toml(logseq_dir: Path) -> Path:
         '# theme = "default"',
         "",
         "# Vertical + horizontal guide lines connecting nested bullets to their parent.",
-        "# bullet_threading = true",
+        "# tree_view = true",
         "",
         "# ── Blog ─────────────────────────────────────────────────────────────────────",
         "",

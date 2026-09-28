@@ -4,26 +4,27 @@
   <ul class="site-nav__list">
     {% if config.menu %}
       {% for item in config.menu %}
+      {% if item.random %}
+      {#- `random = true` entry: main.js points the href at a random page
+          from the search index, and reveals the item once it has. -#}
+      <li class="site-nav__item" hidden>
+        <a class="site-nav__link" href="index.html" data-random-page>
+          {{ item.label }}
+        </a>
+      </li>
+      {% else %}
       <li class="site-nav__item">
         <a class="site-nav__link{% if item.slug == config.home_slug %} site-nav__link--home{% endif %}"
            href="{% if item.slug == config.home_slug %}index.html{% else %}{{ item.slug }}.html{% endif %}">
           {{ item.label }}
         </a>
       </li>
+      {% endif %}
       {% endfor %}
     {% else %}
     <li class="site-nav__item">
       <a class="site-nav__link site-nav__link--home" href="index.html">
         Accueil
-      </a>
-    </li>
-    {% endif %}
-    {% if config.random_page %}
-    {#- main.js points the href at a random page from the search index -#}
-    <li class="site-nav__item" hidden>
-      <a class="site-nav__link" href="index.html" data-random-page>
-        {{ social_icon('random') }}
-        Page au hasard
       </a>
     </li>
     {% endif %}
