@@ -2,7 +2,8 @@ from pathlib import Path
 import pytest
 
 from logseq_builder.domain.page import Page
-from logseq_builder.services.link_resolver import LinkResolver, slugify
+from logseq_builder.domain.paths import slugify
+from logseq_builder.services.link_resolver import LinkResolver
 
 
 def _make_page(title: str, slug: str | None = None) -> Page:
@@ -155,4 +156,51 @@ class TestBrokenLinks:
 
     def test_missing_accent_variant_not_flagged(self, resolver):
         resolver.preprocess_org("See [[epoque tracogna]].", source="Dragons")
+        assert resolver.broken_links == []
+
+
+class TestLinkResolverMd:
+    def test_page_link_has_no_file_prefix(self, resolver):
+        # "file:" is only needed by pandoc's org reader; in markdown it would
+        # end up verbatim in the href and break the link in the browser.
+        result, _ = resolver.preprocess_md("See [[Dragons]].")
+        assert "[Dragons](dragons.html)" in result
+        assert "file:" not in result
+
+    def test_home_link(self, resolver):
+        result, _ = resolver.preprocess_md("Back to [[Accueil]].")
+        assert "[Accueil](index.html)" in result
+
+    def test_labeled_link(self, resolver):
+        result, _ = resolver.preprocess_md("See [[Gustave Coste][le forgeron]].")
+        assert "[le forgeron](gustave-coste.html)" in result
+
+    def test_hashtags(self, resolver):
+        result, _ = resolver.preprocess_md("#Dragons and #[[Gustave Coste]]")
+        assert "[#Dragons](dragons.html)" in result
+        assert "[#Gustave Coste](gustave-coste.html)" in result
+
+    def test_bare_url(self, resolver):
+        result, _ = resolver.preprocess_md("Visit [[https://example.com]].")
+        assert "<https://example.com>" in result
+
+    def test_labeled_url(self, resolver):
+        result, _ = resolver.preprocess_md("Visit [[https://example.com][Example]].")
+        assert "[Example](https://example.com)" in result
+
+    def test_image_and_file_assets(self, resolver):
+        result, assets = resolver.preprocess_md("[[../assets/dragon.png]] [[doc.pdf][Le PDF]] [[assets/x.zip]]")
+        assert "![dragon.png](assets/dragon.png)" in result
+        assert "[Le PDF](assets/doc.pdf)" in result
+        assert "[x.zip](assets/x.zip)" in result
+        assert assets == ["dragon.png", "doc.pdf", "x.zip"]
+
+
+class TestLinkByFilename:
+    def test_link_by_filename_when_title_differs(self):
+        page = Page(title="Mon Super Titre", slug="mon-super-titre", raw_content="",
+                    source_path=Path("/g/pages/ma-page.org"), format="org", is_public=True)
+        resolver = LinkResolver([page], home_slug="index")
+        result, _ = resolver.preprocess_org("[[ma-page]] et [[Ma Page]]")
+        assert result.count("file:mon-super-titre.html") == 2
         assert resolver.broken_links == []

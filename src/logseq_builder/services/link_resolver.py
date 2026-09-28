@@ -1,26 +1,13 @@
 import re
-import unicodedata
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 
-from ..domain.page import Page
-
-_IMAGE_EXTENSIONS = frozenset({
-    ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp",
-    ".bmp", ".ico", ".tiff", ".tif", ".avif",
-})
+from ..domain.page import Page, PageFormat
+from ..domain.paths import is_image, slugify
 
 # Extensions that identify a non-page file target (to be treated as asset).
 _PAGE_EXTENSIONS = frozenset({".org", ".md", ".html"})
-
-
-def slugify(text: str) -> str:
-    text = unicodedata.normalize("NFKD", text)
-    text = text.encode("ascii", "ignore").decode("ascii")
-    text = text.lower()
-    text = re.sub(r"[\s_]+", "-", text)
-    text = re.sub(r"[^a-z0-9-]", "", text)
-    text = re.sub(r"-+", "-", text)
-    return text.strip("-")
 
 
 def _looks_like_file(target: str) -> bool:
@@ -46,9 +33,67 @@ _LOGBOOK_BLOCK = re.compile(r":LOGBOOK:.*?:END:", re.DOTALL)
 _MD_PROPERTIES_BLOCK = re.compile(r"^(?:[a-z][a-z0-9_-]*::[^\n]*\n?)+", re.IGNORECASE)
 _PUBLIC_DIRECTIVE = re.compile(r"#\+PUBLIC:[^\n]*\n?", re.IGNORECASE)
 _EMPTY_HEADING = re.compile(r"^\*+\s*$", re.MULTILINE)
-_MD_ASSET_REL = re.compile(r"\[\[\.\.\/assets\/([^\]]+)\](?:\[([^\]]+)\])?\]")
-_MD_LABELED_LINK = re.compile(r"\[\[([^\]]+)\]\[([^\]]+)\]\]")
-_MD_SIMPLE_LINK = re.compile(r"\[\[([^\]]+)\]\]")
+
+
+def _clean_org(content: str) -> str:
+    # _MD_PROPERTIES_BLOCK only matches at the very start of the file, so it
+    # runs again once #+PUBLIC is gone in case properties followed it.
+    for pattern in (
+        _MD_PROPERTIES_BLOCK, _PUBLIC_DIRECTIVE, _MD_PROPERTIES_BLOCK,
+        _PROPERTIES_BLOCK, _LOGBOOK_BLOCK, _EMPTY_HEADING,
+    ):
+        content = pattern.sub("", content)
+    return content
+
+
+def _clean_md(content: str) -> str:
+    return _MD_PROPERTIES_BLOCK.sub("", content)
+
+
+def _org_asset(path: str, label: str | None) -> str:
+    # No label → pandoc emits <img> for images, which is what we want.
+    # file: prefix is required for pandoc to resolve the link at all.
+    return f"[[file:assets/{path}][{label}]]" if label else f"[[file:assets/{path}]]"
+
+
+def _md_asset(path: str, label: str | None) -> str:
+    bang = "!" if is_image(path) else ""
+    return f"{bang}[{label or path}](assets/{path})"
+
+
+@dataclass(frozen=True)
+class _Syntax:
+    """How one source format spells the links the resolver rewrites."""
+
+    clean: Callable[[str], str]
+    link: Callable[[str, str], str]  # (href, label)
+    asset: Callable[[str, str | None], str]  # (path under assets/, label)
+    bare_external: Callable[[str], str]  # unlabeled external URL
+    external_prefixes: tuple[str, ...]
+    page_href_prefix: str = ""
+    # Extra prefixes that mark an unlabeled [[target]] as an asset.
+    asset_prefixes: tuple[str, ...] = ()
+
+
+_SYNTAXES: dict[PageFormat, _Syntax] = {
+    "org": _Syntax(
+        clean=_clean_org,
+        link=lambda href, label: f"[[{href}][{label}]]",
+        asset=_org_asset,
+        bare_external=lambda target: f"[[{target}]]",
+        external_prefixes=("http://", "https://", "file:"),
+        # pandoc org parser requires "file:" prefix to emit a real <a> tag
+        page_href_prefix="file:",
+    ),
+    "md": _Syntax(
+        clean=_clean_md,
+        link=lambda href, label: f"[{label}]({href})",
+        asset=_md_asset,
+        bare_external=lambda target: f"<{target}>",
+        external_prefixes=("http://", "https://"),
+        asset_prefixes=("assets/",),
+    ),
+}
 
 
 class LinkResolver:
@@ -64,163 +109,82 @@ class LinkResolver:
         for page in pages:
             slug_map[page.title.lower()] = page.slug
             slug_map[page.slug.lower()] = page.slug
+        # A page whose #+TITLE differs from its filename can also be linked by
+        # filename (e.g. [[ma-page]] → mon-super-titre.html). Titles and slugs
+        # win on collision.
+        for page in pages:
+            slug_map.setdefault(slugify(page.source_path.stem), page.slug)
         return slug_map
 
-    def _slug_to_href(self, slug: str) -> str:
-        filename = "index.html" if slug == self._home_slug else f"{slug}.html"
-        # pandoc org parser requires "file:" prefix to emit a real <a> tag
-        return f"file:{filename}"
-
-    def _page_name_to_href(self, target: str, source: str = "") -> str:
+    def _page_name_to_href(self, target: str, source: str) -> str:
         slug = self._slug_map.get(target.lower())
         if slug is None:
             # Case/accents/dashes may differ from the page title (e.g. "epoque-tracogna"
             # vs "Époque Tracogna") yet still resolve to the same page — slugify() folds
             # accents and normalizes separators the same way page slugs were generated.
             candidate = slugify(target)
-            if candidate in self._known_slugs:
-                slug = candidate
-            else:
-                slug = candidate
+            slug = self._slug_map.get(candidate, candidate)
+            if slug not in self._known_slugs:
                 self.broken_links.append((source, target))
-        return self._slug_to_href(slug)
+        return "index.html" if slug == self._home_slug else f"{slug}.html"
 
     def preprocess_org(self, content: str, source: str = "") -> tuple[str, list[str]]:
         """Clean and rewrite Logseq org content for pandoc.
 
         Returns (processed_content, list_of_asset_filenames).
         """
+        return self._preprocess(content, source, _SYNTAXES["org"])
+
+    def preprocess_md(self, content: str, source: str = "") -> tuple[str, list[str]]:
+        """Rewrite Logseq markdown content for pandoc."""
+        return self._preprocess(content, source, _SYNTAXES["md"])
+
+    def preprocess(self, content: str, fmt: PageFormat, source: str = "") -> tuple[str, list[str]]:
+        return self._preprocess(content, source, _SYNTAXES[fmt])
+
+    def _preprocess(self, content: str, source: str, syntax: _Syntax) -> tuple[str, list[str]]:
         assets: list[str] = []
 
-        content = _MD_PROPERTIES_BLOCK.sub("", content)
-        content = _PUBLIC_DIRECTIVE.sub("", content)
-        content = _MD_PROPERTIES_BLOCK.sub("", content)
-        content = _PROPERTIES_BLOCK.sub("", content)
-        content = _LOGBOOK_BLOCK.sub("", content)
-        content = _EMPTY_HEADING.sub("", content)
+        def asset(path: str, label: str | None) -> str:
+            assets.append(path)
+            return syntax.asset(path, label)
 
-        def replace_asset(m: re.Match) -> str:
-            filename, label = m.group(1), m.group(2)
-            assets.append(filename)
-            if label:
-                return f"[[file:assets/{filename}][{label}]]"
-            # No label → pandoc emits <img> for images, which is what we want.
-            # file: prefix is required for pandoc to resolve the link at all.
-            return f"[[file:assets/{filename}]]"
+        def page_link(target: str, label: str) -> str:
+            return syntax.link(syntax.page_href_prefix + self._page_name_to_href(target, source), label)
 
-        content = _ASSET_REL.sub(replace_asset, content)
+        content = syntax.clean(content)
+
+        content = _ASSET_REL.sub(lambda m: asset(m.group(1), m.group(2)), content)
 
         # _LABELED_LINK first: [[page][label]] — must precede _HASHTAG_COMPOUND so
-        # the resulting [[file:...][label]] is never re-processed by later patterns.
+        # the resulting link is never re-processed by later patterns.
         def replace_labeled(m: re.Match) -> str:
             target, label = m.group(1), m.group(2)
-            if target.startswith(("http://", "https://", "file:")):
-                return f"[[{target}][{label}]]"
+            if target.startswith(syntax.external_prefixes):
+                return syntax.link(target, label)
             if _looks_like_file(target):
-                basename = Path(target).name
-                assets.append(basename)
-                return f"[[file:assets/{basename}][{label}]]"
-            href = self._page_name_to_href(target, source)
-            return f"[[{href}][{label}]]"
+                return asset(Path(target).name, label)
+            return page_link(target, label)
 
         content = _LABELED_LINK.sub(replace_labeled, content)
 
         # _HASHTAG_COMPOUND after _LABELED_LINK (safe: #[[tag]] has no ][ inside)
         # and before _SIMPLE_LINK (to prevent [[tag]] inside #[[tag]] being caught).
-        # Result [[file:...][#tag]] is not re-caught because _SIMPLE_LINK requires ]]
-        # immediately after the target, which won't match the ][label]] suffix.
-        def replace_hashtag_compound(m: re.Match) -> str:
-            tag = m.group(1)
-            href = self._page_name_to_href(tag, source)
-            return f"[[{href}][#{tag}]]"
-
-        content = _HASHTAG_COMPOUND.sub(replace_hashtag_compound, content)
+        # The generated org [[file:...][#tag]] is not re-caught because _SIMPLE_LINK
+        # requires ]] immediately after the target.
+        content = _HASHTAG_COMPOUND.sub(lambda m: page_link(m.group(1), f"#{m.group(1)}"), content)
 
         def replace_simple(m: re.Match) -> str:
             target = m.group(1)
-            if target.startswith(("http://", "https://", "file:")):
-                return f"[[{target}]]"
-            if _looks_like_file(target):
-                basename = Path(target).name
-                assets.append(basename)
-                return f"[[file:assets/{basename}]]"
-            href = self._page_name_to_href(target, source)
-            return f"[[{href}][{target}]]"
+            if target.startswith(syntax.external_prefixes):
+                return syntax.bare_external(target)
+            if target.startswith(syntax.asset_prefixes) or _looks_like_file(target):
+                return asset(Path(target).name, None)
+            return page_link(target, target)
 
         content = _SIMPLE_LINK.sub(replace_simple, content)
 
         # _HASHTAG_SIMPLE last: #word has no overlap with [[...]] syntax.
-        def replace_hashtag_simple(m: re.Match) -> str:
-            tag = m.group(1)
-            href = self._page_name_to_href(tag, source)
-            return f"[[{href}][#{tag}]]"
-
-        content = _HASHTAG_SIMPLE.sub(replace_hashtag_simple, content)
-
-        return content, assets
-
-    def preprocess_md(self, content: str, source: str = "") -> tuple[str, list[str]]:
-        """Rewrite Logseq markdown content for pandoc."""
-        assets: list[str] = []
-
-        content = _MD_PROPERTIES_BLOCK.sub("", content)
-
-        def replace_asset(m: re.Match) -> str:
-            filename, label = m.group(1), m.group(2)
-            assets.append(filename)
-            ext = Path(filename).suffix.lower()
-            display = label or filename
-            if ext in _IMAGE_EXTENSIONS:
-                return f"![{display}](assets/{filename})"
-            return f"[{display}](assets/{filename})"
-
-        content = _MD_ASSET_REL.sub(replace_asset, content)
-
-        def replace_labeled(m: re.Match) -> str:
-            target, label = m.group(1), m.group(2)
-            if target.startswith(("http://", "https://")):
-                return f"[{label}]({target})"
-            if _looks_like_file(target):
-                basename = Path(target).name
-                assets.append(basename)
-                ext = Path(basename).suffix.lower()
-                if ext in _IMAGE_EXTENSIONS:
-                    return f"![{label}](assets/{basename})"
-                return f"[{label}](assets/{basename})"
-            href = self._page_name_to_href(target, source)
-            return f"[{label}]({href})"
-
-        content = _MD_LABELED_LINK.sub(replace_labeled, content)
-
-        # Compound hashtag before simple link (same ordering logic as org).
-        def replace_hashtag_compound_md(m: re.Match) -> str:
-            tag = m.group(1)
-            href = self._page_name_to_href(tag, source)
-            return f"[#{tag}]({href})"
-
-        content = _HASHTAG_COMPOUND.sub(replace_hashtag_compound_md, content)
-
-        def replace_simple(m: re.Match) -> str:
-            target = m.group(1)
-            if target.startswith(("http://", "https://")):
-                return f"<{target}>"
-            if target.startswith("assets/") or _looks_like_file(target):
-                basename = Path(target).name
-                assets.append(basename)
-                ext = Path(basename).suffix.lower()
-                if ext in _IMAGE_EXTENSIONS:
-                    return f"![{basename}](assets/{basename})"
-                return f"[{basename}](assets/{basename})"
-            href = self._page_name_to_href(target, source)
-            return f"[{target}]({href})"
-
-        content = _MD_SIMPLE_LINK.sub(replace_simple, content)
-
-        def replace_hashtag_simple_md(m: re.Match) -> str:
-            tag = m.group(1)
-            href = self._page_name_to_href(tag, source)
-            return f"[#{tag}]({href})"
-
-        content = _HASHTAG_SIMPLE.sub(replace_hashtag_simple_md, content)
+        content = _HASHTAG_SIMPLE.sub(lambda m: page_link(m.group(1), f"#{m.group(1)}"), content)
 
         return content, assets

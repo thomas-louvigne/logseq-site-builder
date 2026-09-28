@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
+PageFormat = Literal["org", "md"]
+
 
 @dataclass
 class Page:
@@ -10,7 +12,7 @@ class Page:
     slug: str
     raw_content: str
     source_path: Path
-    format: str  # "org" | "md"
+    format: PageFormat
     is_public: bool
     html_content: str = ""
     description: str = ""
@@ -35,6 +37,7 @@ class SiteConfig:
     menu: list[dict[str, str]] = field(default_factory=list)
     org_listify_headings_from: int | Literal["auto"] | None = "auto"
     # From config.edn
+    all_public: bool = False
     hidden: list[str] = field(default_factory=list)
     pages_directory: str = "pages"
     journals_directory: str = "journals"

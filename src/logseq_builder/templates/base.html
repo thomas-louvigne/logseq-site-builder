@@ -7,7 +7,8 @@
 
   {%- set _page_title = page.title ~ " — " ~ config.title if page is defined else config.title %}
   {%- set _page_desc = (page.description if page is defined and page.description) or config.description %}
-  {%- set _page_url = (config.base_url ~ "/" ~ (page.output_filename if page is defined else "")) if config.base_url else "" %}
+  {#- canonical_path: the file this template is written to; unset for pages with no canonical URL (404) -#}
+  {%- set _page_url = (config.base_url ~ "/" ~ canonical_path) if config.base_url and canonical_path else "" %}
 
   {% if _page_desc %}<meta name="description" content="{{ _page_desc }}">{% endif %}
   {% if config.author %}<meta name="author" content="{{ config.author }}">{% endif %}

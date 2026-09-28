@@ -1,3 +1,4 @@
+import dataclasses
 import shutil
 import subprocess
 import sys
@@ -8,125 +9,16 @@ import click
 from .adapters.edn_config_loader import generate_toml
 from .adapters.logseq_reader import LogseqReader
 from .adapters.pandoc_converter import PandocConverter
-from .adapters.static_writer import THEMES_DIR, StaticWriter
-from .adapters.toml_config_loader import load_toml_config
+from .adapters.static_writer import StaticWriter
+from .adapters.themes import builtin_theme_names, resolve_theme_css
+from .adapters.toml_config_loader import CONFIG_FILENAME, load_toml_config
 from .domain.page import SiteConfig
-from .services.link_resolver import slugify
 from .services.site_builder import SiteBuilder
-
-_TOML_FILENAME = "logseq-site-builder.toml"
-
-
-def _build_site_config(
-    toml: dict,
-    title: str,
-    home_page: str | None,
-    social_links: tuple[str, ...],
-    public_pages: list,
-) -> "SiteConfig":
-    site_section = toml.get("site", {})
-
-    parsed_socials: dict[str, str] = dict(toml.get("social_networks", {}))
-    for entry in social_links:
-        if ":" not in entry:
-            click.echo(f"Warning: ignoring malformed --social '{entry}' (expected NAME:URL)", err=True)
-            continue
-        name, _, url = entry.partition(":")
-        parsed_socials[name.strip()] = url.strip()
-
-    menu: list[dict[str, str]] = toml.get("menu", [])
-
-    raw_listify = site_section.get("org_listify_headings_from", "auto")
-    org_listify_headings_from: int | str | None
-    if raw_listify is None or raw_listify is False:
-        org_listify_headings_from = None
-    elif isinstance(raw_listify, str) and raw_listify.strip().lower() == "auto":
-        org_listify_headings_from = "auto"
-    elif isinstance(raw_listify, str) and raw_listify.strip().lower() in ("false", "off", "none", ""):
-        org_listify_headings_from = None
-    else:
-        org_listify_headings_from = int(raw_listify)
-
-    hidden: list[str] = site_section.get("hidden", [])
-    pages_directory: str = site_section.get("pages_directory", "pages")
-    journals_directory: str = site_section.get("journals_directory", "journals")
-    enable_journals: bool = site_section.get("enable_journals", False)
-    journal_page_title_format: str = site_section.get("journal_page_title_format", "dd-MM-yyyy")
-    journal_file_name_format: str = site_section.get("journal_file_name_format", "yyyy_MM_dd")
-    blog_title: str = site_section.get("blog_title", "Blog")
-    blog_slug: str = site_section.get("blog_slug", "blog")
-    rss: bool = site_section.get("rss", False)
-    bullet_threading: bool = site_section.get("bullet_threading", True)
-
-    external_static_dirs: list[str] = [
-        entry["path"] for entry in toml.get("external_static_dirs", []) if entry.get("path")
-    ]
-
-    toml_home = site_section.get("home_page")
-    raw_home = home_page or toml_home
-    home_slug = slugify(raw_home) if raw_home else _auto_detect_home(public_pages)
-
-    public_slugs = {p.slug for p in public_pages}
-    public_filename_slugs = {slugify(p.source_path.stem) for p in public_pages}
-    if raw_home and home_slug not in public_slugs and home_slug not in public_filename_slugs:
-        click.echo(
-            f"Warning: no public page matches home_page='{raw_home}' (slug: '{home_slug}').\n"
-            f"  Available slugs: {sorted(public_slugs)}",
-            err=True,
-        )
-
-    if enable_journals and not any(item.get("slug") == blog_slug for item in menu):
-        menu = list(menu) + [{"label": blog_title, "slug": blog_slug}]
-
-    return SiteConfig(
-        title=title,
-        author=site_section.get("author", ""),
-        description=site_section.get("description", ""),
-        base_url=site_section.get("base_url", "").rstrip("/"),
-        lang=site_section.get("lang", "en"),
-        social_links=parsed_socials,
-        home_slug=home_slug,
-        menu=menu,
-        org_listify_headings_from=org_listify_headings_from,
-        hidden=hidden,
-        pages_directory=pages_directory,
-        journals_directory=journals_directory,
-        enable_journals=enable_journals,
-        journal_page_title_format=journal_page_title_format,
-        journal_file_name_format=journal_file_name_format,
-        blog_title=blog_title,
-        blog_slug=blog_slug,
-        rss=rss,
-        bullet_threading=bullet_threading,
-        external_static_dirs=external_static_dirs,
-    )
+from .services.site_config import build_site_config, resolve_home_slug
 
 
-def _resolve_theme_css(theme: str, logseq_dir: Path) -> Path | None:
-    """Resolve a theme name or path to an absolute CSS file path.
-
-    Resolution order:
-    1. Built-in theme name (e.g. "dark" → themes/dark.css)
-    2. Path relative to the Logseq project directory
-    3. Absolute path
-    """
-    # Built-in theme by name (no extension, no path separators)
-    if not theme.endswith(".css") and "/" not in theme and "\\" not in theme:
-        candidate = THEMES_DIR / f"{theme}.css"
-        if candidate.exists():
-            return candidate
-
-    # Relative path from logseq dir
-    candidate = logseq_dir / theme
-    if candidate.exists():
-        return candidate
-
-    # Absolute path
-    absolute = Path(theme)
-    if absolute.is_absolute() and absolute.exists():
-        return absolute
-
-    return None
+def _warn(message: str) -> None:
+    click.echo(f"Warning: {message}", err=True)
 
 
 @click.command()
@@ -146,7 +38,7 @@ def _resolve_theme_css(theme: str, logseq_dir: Path) -> Path | None:
     "--no-init-toml",
     is_flag=True,
     default=False,
-    help=f"Do not generate {_TOML_FILENAME} when it does not exist.",
+    help=f"Do not generate {CONFIG_FILENAME} when it does not exist.",
 )
 @click.option(
     "--theme",
@@ -186,7 +78,7 @@ def main(
     zip_output: bool,
 ) -> None:
     """Build a static website from a Logseq knowledge base."""
-    toml_path = input_dir / _TOML_FILENAME
+    toml_path = input_dir / CONFIG_FILENAME
     if not toml_path.exists() and not no_init_toml:
         generated = generate_toml(input_dir)
         click.echo(f"Created {generated} from logseq/config.edn — edit it to customise your site.")
@@ -194,46 +86,39 @@ def main(
     toml = load_toml_config(input_dir)
     if toml_path.exists():
         click.echo(f"Loaded config from {toml_path}")
-
     site_section = toml.get("site", {})
-    all_public = all_public or site_section.get("all_public", False)
-    title = site_title or site_section.get("title") or input_dir.name
+
+    config, warnings = build_site_config(
+        toml,
+        title=site_title,
+        default_title=input_dir.name,
+        all_public=all_public,
+        social_links=social_links,
+    )
+    for warning in warnings:
+        _warn(warning)
 
     reader = LogseqReader(
         input_dir,
-        all_public=all_public,
-        pages_directory=site_section.get("pages_directory", "pages"),
-        journals_directory=site_section.get("journals_directory", "journals"),
-        hidden=site_section.get("hidden", []),
-        journal_page_title_format=site_section.get("journal_page_title_format", "dd-MM-yyyy"),
-        journal_file_name_format=site_section.get("journal_file_name_format", "yyyy_MM_dd"),
+        all_public=config.all_public,
+        pages_directory=config.pages_directory,
+        journals_directory=config.journals_directory,
+        hidden=config.hidden,
+        journal_page_title_format=config.journal_page_title_format,
+        journal_file_name_format=config.journal_file_name_format,
     )
 
-    all_pages = list(reader.find_all())
-    public_pages = [p for p in all_pages if p.is_public]
-
+    public_pages = [p for p in reader.find_all() if p.is_public]
     if not public_pages:
         click.echo("No public pages found. Use --all-public or add #+PUBLIC: true to pages.", err=True)
         sys.exit(1)
 
-    config = _build_site_config(toml, title, home_page, social_links, public_pages)
+    home_slug, home_warning = resolve_home_slug(home_page or site_section.get("home_page"), public_pages)
+    if home_warning:
+        _warn(home_warning)
+    config = dataclasses.replace(config, home_slug=home_slug)
 
-    logseq_assets_dir = input_dir / "assets"
-
-    theme_str = theme or site_section.get("theme")
-    theme_css: Path | None = None
-    if theme_str:
-        theme_css = _resolve_theme_css(theme_str, input_dir)
-        if theme_css is None:
-            built_in_names = [p.stem for p in THEMES_DIR.glob("*.css")]
-            click.echo(
-                f"Warning: theme '{theme_str}' not found. "
-                f"Built-in themes: {built_in_names}. "
-                f"Falling back to default.",
-                err=True,
-            )
-        else:
-            click.echo(f"  Theme: {theme_css.name}")
+    theme_css = _resolve_theme(theme or site_section.get("theme"), input_dir)
 
     builder = SiteBuilder(
         reader=reader,
@@ -243,24 +128,14 @@ def main(
 
     click.echo(f"Building site from {input_dir} → {output_dir}")
     click.echo(f"  {len(public_pages)} public page(s) found")
-    journal_count = 0
-    if config.enable_journals:
-        journal_count = sum(1 for _ in reader.find_journals())
-        click.echo(f"  {journal_count} journal entry(ies) found")
-    if config.hidden:
-        click.echo(f"  {len(config.hidden)} hidden path(s): {config.hidden}")
-    if config.external_static_dirs:
-        click.echo(f"  {len(config.external_static_dirs)} external static dir(s) configured")
-        for external_dir in config.external_static_dirs:
-            if not Path(external_dir).is_dir():
-                click.echo(f"Warning: external_static_dirs path not found: {external_dir}", err=True)
+    journal_count = sum(1 for _ in reader.find_journals()) if config.enable_journals else 0
+    _echo_build_summary(config, journal_count)
 
+    logseq_assets_dir = input_dir / "assets"
     total_pages = len(public_pages) + journal_count
     try:
         with click.progressbar(length=total_pages, label="Building", width=50) as bar:
-            def on_progress(title: str) -> None:
-                bar.update(1)
-            builder.build(config, logseq_assets_dir, on_progress=on_progress)
+            builder.build(config, logseq_assets_dir, on_progress=lambda _title: bar.update(1))
     except Exception as exc:
         click.echo(f"Error: {exc}", err=True)
         sys.exit(1)
@@ -271,18 +146,46 @@ def main(
 
     if check_links:
         _report_broken_links(builder.broken_links)
-
     if check_assets:
         _report_unused_assets(logseq_assets_dir, builder.used_assets)
-
     if zip_output:
         archive_path = shutil.make_archive(str(output_dir), "zip", root_dir=output_dir)
         click.echo(f"  Zipped to {archive_path}")
 
+    _notify_desktop(f"Build complete — {total_pages} page(s) → {output_dir}")
+
+
+def _resolve_theme(theme: str | None, input_dir: Path) -> Path | None:
+    if not theme:
+        return None
+    theme_css = resolve_theme_css(theme, input_dir)
+    if theme_css is None:
+        _warn(
+            f"theme '{theme}' not found. "
+            f"Built-in themes: {builtin_theme_names()}. "
+            f"Falling back to default."
+        )
+    else:
+        click.echo(f"  Theme: {theme_css.name}")
+    return theme_css
+
+
+def _echo_build_summary(config: SiteConfig, journal_count: int) -> None:
+    if config.enable_journals:
+        click.echo(f"  {journal_count} journal entry(ies) found")
+    if config.hidden:
+        click.echo(f"  {len(config.hidden)} hidden path(s): {config.hidden}")
+    if config.external_static_dirs:
+        click.echo(f"  {len(config.external_static_dirs)} external static dir(s) configured")
+        for external_dir in config.external_static_dirs:
+            if not Path(external_dir).is_dir():
+                _warn(f"external_static_dirs path not found: {external_dir}")
+
+
+def _notify_desktop(message: str) -> None:
     if shutil.which("notify-send"):
         subprocess.run(
-            ["notify-send", "--icon=dialog-information", "logseq-builder",
-             f"Build complete — {total_pages} page(s) → {output_dir}"],
+            ["notify-send", "--icon=dialog-information", "logseq-builder", message],
             check=False,
         )
 
@@ -317,16 +220,3 @@ def _report_unused_assets(logseq_assets_dir: Path, used_assets: list[str]) -> No
     click.echo(f"\n{len(unused)} unused asset(s) found (not referenced by any page):")
     for name in unused:
         click.echo(f"  assets/{name}")
-
-
-def _auto_detect_home(pages) -> str:  # type: ignore[type-arg]
-    priority = ["index", "home", "accueil", "readme"]
-    slugs = {p.slug: p for p in pages}
-    for candidate in priority:
-        if candidate in slugs:
-            return candidate
-    titles_lower = {p.title.lower(): p for p in pages}
-    for candidate in ["index", "home", "accueil"]:
-        if candidate in titles_lower:
-            return titles_lower[candidate].slug
-    return pages[0].slug
