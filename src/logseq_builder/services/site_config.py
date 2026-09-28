@@ -3,7 +3,7 @@
 from collections.abc import Iterable
 from typing import Literal
 
-from ..domain.page import Page, SiteConfig
+from ..domain.page import SHARE_BUTTONS, Page, SiteConfig
 from ..domain.paths import slugify
 
 _HOME_CANDIDATE_SLUGS = ["index", "home", "accueil", "readme"]
@@ -25,6 +25,9 @@ def build_site_config(
 
     socials, social_warnings = _merge_social_links(toml.get("social_networks", {}), social_links)
     warnings += social_warnings
+
+    share, share_warnings = _parse_share(toml.get("share", {}))
+    warnings += share_warnings
 
     enable_journals: bool = site.get("enable_journals", False)
     blog_title: str = site.get("blog_title", "Blog")
@@ -56,8 +59,19 @@ def build_site_config(
         external_static_dirs=[
             entry["path"] for entry in toml.get("external_static_dirs", []) if entry.get("path")
         ],
+        share=share,
     )
     return config, warnings
+
+
+def _parse_share(raw: dict) -> tuple[dict[str, bool], list[str]]:
+    """Every share-bar button defaults to on; [share] only lists the ones to change."""
+    warnings = [
+        f"ignoring unknown [share] key '{key}' (expected one of: {', '.join(SHARE_BUTTONS)})"
+        for key in raw
+        if key not in SHARE_BUTTONS
+    ]
+    return {name: bool(raw.get(name, True)) for name in SHARE_BUTTONS}, warnings
 
 
 def _merge_social_links(

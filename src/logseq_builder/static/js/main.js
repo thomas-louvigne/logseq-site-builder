@@ -226,3 +226,74 @@
 
   initSearch("site-search", "search-results");
 })();
+
+(function () {
+  "use strict";
+
+  const bar = document.querySelector(".share-bar");
+  if (!bar) return;
+
+  const canonical = document.querySelector('link[rel="canonical"]');
+  const url = canonical ? canonical.href : location.href.split("#")[0];
+  const text = bar.dataset.shareText || document.title;
+  const status = bar.querySelector(".share-bar__status");
+  let statusTimer = null;
+
+  function announce(message) {
+    status.textContent = message;
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(function () { status.textContent = ""; }, 2500);
+  }
+
+  bar.querySelectorAll("[data-share-pattern]").forEach(function (link) {
+    link.href = link.dataset.sharePattern
+      .replace("{url}", encodeURIComponent(url))
+      .replace("{text}", encodeURIComponent(text));
+  });
+
+  // Native share sheet (mostly mobile): reaches every app the device has,
+  // not just the networks listed in the bar.
+  const native = bar.querySelector("[data-share-native]");
+  if (native && navigator.share) {
+    native.hidden = false;
+    native.addEventListener("click", function () {
+      navigator.share({ title: text, url: url }).catch(function () {});
+    });
+  }
+
+  const copy = bar.querySelector("[data-share-copy]");
+  if (copy) {
+    copy.addEventListener("click", function () {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(
+          function () { announce("Lien copié"); },
+          function () { window.prompt("Copiez ce lien :", url); }
+        );
+      } else {
+        // Clipboard API needs a secure context (https / localhost).
+        window.prompt("Copiez ce lien :", url);
+      }
+    });
+  }
+
+  const print = bar.querySelector("[data-share-print]");
+  if (print) {
+    print.addEventListener("click", function () { window.print(); });
+  }
+})();
+
+(function () {
+  "use strict";
+
+  // Folded tree-view branches would otherwise be missing from the printout:
+  // open them for the print, then fold them back.
+  let reopened = [];
+  window.addEventListener("beforeprint", function () {
+    reopened = Array.from(document.querySelectorAll(".page-body details:not([open])"));
+    reopened.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    reopened.forEach(function (d) { d.open = false; });
+    reopened = [];
+  });
+})();

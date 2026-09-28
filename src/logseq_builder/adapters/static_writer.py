@@ -120,6 +120,9 @@ class StaticWriter(SiteWriter):
         css_src = self._theme_css if self._theme_css is not None else DEFAULT_THEME_CSS
         if css_src.exists():
             shutil.copy2(css_src, self._output_dir / "style.css")
+        # Theme-independent, so printing gets the same menu-free layout
+        # whatever theme (built-in or custom) the site uses.
+        shutil.copy2(_STATIC_DIR / "print.css", self._output_dir / "print.css")
 
         for js_name in ("main.js", "fuse.min.js"):
             js_src = _STATIC_DIR / "js" / js_name

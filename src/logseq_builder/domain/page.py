@@ -5,6 +5,10 @@ from typing import Literal
 
 PageFormat = Literal["org", "md"]
 
+# Buttons of the share bar under each page title, in display order; each one
+# can be switched off from the [share] table of logseq-site-builder.toml.
+SHARE_BUTTONS = ("native", "whatsapp", "facebook", "x", "bluesky", "linkedin", "email", "copy_link", "print")
+
 
 @dataclass
 class Page:
@@ -51,3 +55,4 @@ class SiteConfig:
     lang: str = "en"
     bullet_threading: bool = True
     external_static_dirs: list[str] = field(default_factory=list)
+    share: dict[str, bool] = field(default_factory=lambda: dict.fromkeys(SHARE_BUTTONS, True))

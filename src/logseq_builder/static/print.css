@@ -1,0 +1,86 @@
+/* Print view — loaded with media="print" after the theme stylesheet, so it
+   applies to every theme (built-in or custom). Strips the site chrome
+   (header, sidebar menu, footer, share bar) and prints the page content
+   alone, black on white, full width. */
+
+@page { margin: 2cm 1.8cm; }
+
+:root {
+  --color-bg: #fff;
+  --color-surface: #fff;
+  --color-border: #bbb;
+  --color-text: #000;
+  --color-text-muted: #444;
+  --color-accent: #000;
+  --color-accent-hover: #000;
+  --color-heading: #000;
+  --color-code: #000;
+}
+
+html { font-size: 11pt; }
+body {
+  display: block;
+  min-height: 0;
+  background: #fff !important;
+  color: #000 !important;
+}
+
+.site-header,
+.site-nav,
+.site-footer,
+.menu-toggle,
+.share-bar { display: none !important; }
+
+.layout,
+.content {
+  display: block;
+  padding: 0 !important;
+  margin: 0;
+  background: none !important;
+}
+.page-article {
+  max-width: none;
+  margin: 0;
+}
+
+.page-title,
+.page-body h1,
+.page-body h2,
+.page-body h3,
+.page-body h4 { color: #000 !important; }
+
+a { color: #000 !important; text-decoration: underline; }
+/* Paper can't be clicked: spell out where external links point. */
+.page-body a[href^="http"]::after {
+  content: " (" attr(href) ")";
+  font-size: 0.85em;
+  color: #444;
+  word-break: break-all;
+}
+
+.page-body pre {
+  background: #f4f4f4 !important;
+  color: #000 !important;
+  border: 1px solid #ccc;
+  box-shadow: none !important;
+  white-space: pre-wrap;
+}
+.page-body code { background: #f4f4f4 !important; color: #000 !important; }
+.page-body blockquote { background: none !important; color: #333 !important; }
+.page-body img { box-shadow: none !important; }
+.page-body th { background: #eee !important; }
+
+/* Tree view: keep the guide lines, drop the +/- fold buttons. */
+.bullet-threading .page-body details > summary::before {
+  background-image: none !important;
+  background-color: var(--color-text-muted) !important;
+}
+
+.page-body h1,
+.page-body h2,
+.page-body h3,
+.page-body h4 { break-after: avoid; }
+.page-body pre,
+.page-body blockquote,
+.page-body table,
+.page-body img { break-inside: avoid; }

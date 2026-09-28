@@ -4,7 +4,7 @@ import pytest
 from logseq_builder.adapters.logseq_reader import LogseqReader
 from logseq_builder.adapters.pandoc_converter import PandocConverter
 from logseq_builder.adapters.static_writer import StaticWriter
-from logseq_builder.domain.page import SiteConfig
+from logseq_builder.domain.page import SHARE_BUTTONS, SiteConfig
 from logseq_builder.services.site_builder import SiteBuilder
 
 
@@ -75,6 +75,49 @@ class TestSiteBuilder:
     def test_creates_js_main(self, logseq_dir, output_dir, config):
         build(logseq_dir, output_dir, config)
         assert (output_dir / "js" / "main.js").exists()
+
+    def test_creates_print_css_linked_for_print_only(self, logseq_dir, output_dir, config):
+        build(logseq_dir, output_dir, config)
+        assert (output_dir / "print.css").exists()
+        html = (output_dir / "dragons.html").read_text(encoding="utf-8")
+        assert '<link rel="stylesheet" href="print.css" media="print">' in html
+
+    def test_page_has_share_bar_with_print_button(self, logseq_dir, output_dir, config):
+        build(logseq_dir, output_dir, config)
+        html = (output_dir / "dragons.html").read_text(encoding="utf-8")
+        assert 'class="share-bar"' in html
+        assert "data-share-print" in html
+        assert 'data-share-pattern="https://wa.me/?text={text}%20{url}"' in html
+
+    def test_share_links_use_canonical_url_when_base_url_set(self, logseq_dir, output_dir):
+        config = SiteConfig(title="Mon Site", home_slug="accueil", base_url="https://exemple.fr")
+        build(logseq_dir, output_dir, config)
+        html = (output_dir / "dragons.html").read_text(encoding="utf-8")
+        assert "https://www.facebook.com/sharer/sharer.php?u=https%3A//exemple.fr/dragons.html" in html
+
+    def test_disabled_share_buttons_are_not_rendered(self, logseq_dir, output_dir):
+        share = dict.fromkeys(SHARE_BUTTONS, True) | {"facebook": False, "print": False}
+        config = SiteConfig(title="Mon Site", home_slug="accueil", share=share)
+        build(logseq_dir, output_dir, config)
+        html = (output_dir / "dragons.html").read_text(encoding="utf-8")
+        assert "facebook.com/sharer" not in html
+        assert "data-share-print" not in html
+        assert "share-bar__separator" not in html
+        assert "wa.me" in html
+
+    def test_share_bar_hidden_when_every_button_is_off(self, logseq_dir, output_dir):
+        config = SiteConfig(title="Mon Site", home_slug="accueil", share=dict.fromkeys(SHARE_BUTTONS, False))
+        build(logseq_dir, output_dir, config)
+        html = (output_dir / "dragons.html").read_text(encoding="utf-8")
+        assert 'class="share-bar"' not in html
+
+    def test_print_only_bar_has_no_share_label(self, logseq_dir, output_dir):
+        share = dict.fromkeys(SHARE_BUTTONS, False) | {"print": True}
+        config = SiteConfig(title="Mon Site", home_slug="accueil", share=share)
+        build(logseq_dir, output_dir, config)
+        html = (output_dir / "dragons.html").read_text(encoding="utf-8")
+        assert "data-share-print" in html
+        assert "share-bar__label" not in html
 
     def test_copies_referenced_asset(self, logseq_dir, output_dir, config):
         build(logseq_dir, output_dir, config)

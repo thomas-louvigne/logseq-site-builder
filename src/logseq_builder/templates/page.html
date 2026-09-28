@@ -6,6 +6,7 @@
 <article class="page-article">
   <header class="page-header">
     <h1 class="page-title">{% if page.icon %}<span class="page-icon" aria-hidden="true">{{ page.icon }}</span> {% endif %}{{ page.title }}</h1>
+    {% include 'partials/share.html' %}
   </header>
   <div class="page-body">
     {{ page.html_content | safe }}

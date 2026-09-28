@@ -133,3 +133,20 @@ Mastodon = "https://mastodon.social/@your-handle"
 X        = "https://x.com/your-handle"
 Discord  = "https://discord.gg/your-invite"
 Facebook = "https://facebook.com/your-page"
+
+# ── Share & print bar ─────────────────────────────────────────────────────────
+# Row of buttons under every page title. Each one is on by default: set it to
+# false to hide it. With every button off, the bar disappears entirely.
+# Share links use base_url when set (canonical URL), else the page's own URL.
+# The print button (and Ctrl+P) prints the page alone, without the menu.
+
+[share]
+native    = true   # device share sheet — only shown where supported (mostly mobile)
+whatsapp  = true
+facebook  = true
+x         = true
+bluesky   = true
+linkedin  = true
+email     = true
+copy_link = true
+print     = true
