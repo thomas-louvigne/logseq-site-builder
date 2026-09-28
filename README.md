@@ -6,9 +6,15 @@ Turns a [Logseq](https://logseq.com/) graph into a static website — HTML + CSS
 
 ## Example
 
-[chroniques-insoumises.com](https://chroniques-insoumises.com/) — a Logseq knowledge base built with the default theme.
+[chroniques-insoumises.com](https://chroniques-insoumises.com/) — a Logseq knowledge base built with the `nord` theme.
 
 ![Screenshot of chroniques-insoumises.com](docs/screenshot.png)
+
+## Themes
+
+![The default, dark and nord built-in themes, rendered from the sample sites in test-sites/](docs/themes.png)
+
+Three built-in themes — `default`, `dark` and `nord` — or bring your own CSS. The optional **tree view** (`bullet_threading = true`, shown on `default` and `nord` above) draws guide lines between nested bullets and makes every branch foldable; turn it off for classic bullets (`dark` above).
 
 ## Features
 
@@ -16,7 +22,8 @@ Turns a [Logseq](https://logseq.com/) graph into a static website — HTML + CSS
 - **Selective publishing** — `#+PUBLIC: true` per page, an all-public mode, or hide specific paths
 - **Wiki links, images & attachments** handled automatically (`[[Page]]`, `[[../assets/file.pdf]]`…)
 - **Blog / journals** — index page + RSS feed generated from your Logseq journals
-- **Themes** — built-in `default` and `dark`, or bring your own CSS
+- **Themes** — built-in `default`, `dark` and `nord`, or bring your own CSS
+- **Tree view** — optional guide lines and fold/unfold buttons on nested bullets
 - **Nav menu & social links**, configurable via TOML
 - **Custom HTML/CSS pages** copied as-is (embeds, mini-apps, slide decks…)
 - **External static sites** — copy in mini-sites that live outside the project (`[[external_static_dirs]]`)
@@ -58,7 +65,7 @@ Priority: CLI options > TOML file > `logseq/config.edn`.
 | `--home-page SLUG` | Page to use as `index.html` |
 | `--all-public` | Publish all pages, ignore `#+PUBLIC` |
 | `--social NAME:URL` | Social link in the nav menu (repeatable) |
-| `--theme NAME_OR_PATH` | `default`, `dark`, or a path to a CSS file |
+| `--theme NAME_OR_PATH` | `default`, `dark`, `nord`, or a path to a CSS file |
 | `--check-links` | List internal links that would 404 |
 | `--check-assets` | List assets that no page references |
 | `--zip` | Zip the built site into `<output_dir>.zip` |
